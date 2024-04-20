@@ -46,9 +46,7 @@ public:
     virtual std::optional<std::string> asSymbol() const {
         return std::nullopt;
     };
-    virtual std::vector<ValuePtr> toVector() const {
-        return {};
-    };
+    virtual std::vector<ValuePtr> toVector() const {return {};};
     virtual std::string toString() const = 0;
 };
 

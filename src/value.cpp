@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <string>
 #include <sstream>
+#include "./error.h"
 
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
@@ -45,6 +46,7 @@ std::string PairValue::toString() const {
 }
 
 std::vector<ValuePtr> PairValue:: toVector() const {
+    try{
     std::vector<ValuePtr> result;
     result.push_back(this->car);
     auto cdr = getCdr();
@@ -58,6 +60,9 @@ std::vector<ValuePtr> PairValue:: toVector() const {
     }
     result.push_back(cdr);
     return result;
+    }catch(...){
+        throw RuntimeError("Error in toVector");
+    }
 }
 
 std::string BuiltinProcValue::toString() const {

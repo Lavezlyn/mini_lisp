@@ -11,6 +11,7 @@ EvalEnv::EvalEnv(){
     env["-"] = std::make_shared<BuiltinProcValue>(sub);
     env["*"] = std::make_shared<BuiltinProcValue>(mul);
     env["/"] = std::make_shared<BuiltinProcValue>(divide);
+    env["print"] = std::make_shared<BuiltinProcValue>(print);
 }
 
 ValuePtr EvalEnv::eval(ValuePtr expr){

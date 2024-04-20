@@ -1,5 +1,6 @@
 #include "./builtin.h"
 #include "./error.h"
+#include <iostream> 
 
 ValuePtr add(const std::vector<ValuePtr>& params){
     double result = 0;
@@ -47,4 +48,11 @@ ValuePtr divide(const std::vector<ValuePtr>& params){
     double first_elem = static_cast<NumericValue*>(params[0].get())->asNumber();
     result = result * first_elem * first_elem;
     return std::make_shared<NumericValue>(result);  
+}
+
+ValuePtr print(const std::vector<ValuePtr>& params){
+    for(const auto& i: params){
+        std::cout << i->toString() << std::endl;
+    }
+    return std::make_shared<NilValue>();
 }

@@ -13,4 +13,9 @@ public:
     using runtime_error::runtime_error;
 };
 
+class RuntimeError : public std::runtime_error {
+public:
+    using runtime_error::runtime_error;
+};
+
 #endif
