@@ -1,10 +1,17 @@
 #include "./eval_env.h"
 #include "./error.h"
 #include "./builtin.h"
+#include "./forms.h"
 #include <algorithm>
 #include <iterator>
+#include <unordered_set>
 
 using namespace std::literals;
+std::unordered_set<std::string> special_forms = {"define"s};
+std::unordered_set<std::string> calculator = {"+"s, "-"s, "*"s, "/"s, "print"s};
+std::unordered_set<std::string> typeCheck = { "atom?"s, "boolean?"s, "number?"s, 
+                                            "pair?"s, "procedure?"s, "symbol?"s, 
+                                            "null?"s,"string?"s, "integer?"s, "list?"s };
 
 EvalEnv::EvalEnv(){
     env["+"] = std::make_shared<BuiltinProcValue>(add);
@@ -14,26 +21,43 @@ EvalEnv::EvalEnv(){
     env["print"] = std::make_shared<BuiltinProcValue>(print);
 }
 
+void EvalEnv::defineBinding(const std::string& name, ValuePtr value){
+    env[name] = value;
+}
+
+ValuePtr EvalEnv::lookupBinding(const std::string& name){
+    if (auto value = env[name]){
+        return value;
+    }
+    else if (parent){
+        return parent->lookupBinding(name);
+    }
+    else{
+        throw LispError("Variable " + name + " not defined.");
+    }
+}
+
 ValuePtr EvalEnv::eval(ValuePtr expr){
     if (expr->isSelfEvaluating()){
         return expr;
     }
     if (expr->getType() == ValueType::PAIR){
-        std::vector<ValuePtr> list = static_cast<PairValue*>(expr.get())->toVector();
-        if (list[0]->asSymbol() == "define"s){
-            if(auto name = list[1]->asSymbol()){
-                env[*name] = eval(list[2]);
-                return std::make_shared<NilValue>(); 
-            }
-            else{
-                throw LispError("Malformed define.");
-            }
+        auto Pair = static_cast<PairValue*>(expr.get());
+        auto op = Pair->getCar()->asSymbol();
+        ValuePtr rest = Pair->getCdr();
+        std::vector<ValuePtr> args = rest->toVector();
+        if (SPECIAL_FORMS.find(*op) != SPECIAL_FORMS.end()){
+            return SPECIAL_FORMS.at(*op)(args, *this);   
         }
-        else{
-            ValuePtr proc = this->eval(list[0]);
-            ValuePtr rest = static_cast<PairValue*>(expr.get())->getCdr();
-            std::vector<ValuePtr> args = this->evalList(rest);
-            return this->apply(proc, args);
+        else if (typeCheck.find(*op) != typeCheck.end()){
+            auto checker = static_cast<BuiltinProcValue*>(env[*op].get())->getFunc();
+            std::vector<ValuePtr> evaled_args = this->evalList(rest);
+            return checker(evaled_args);
+        }
+        else if (calculator.find(*op)!=calculator.end()){
+            ValuePtr proc = this->eval(Pair->getCar());
+            std::vector<ValuePtr> evaled_args = this->evalList(rest);
+            return this->apply(proc, evaled_args);
         }
     }
     if (auto symbol = expr->asSymbol()){

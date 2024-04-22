@@ -15,6 +15,7 @@ enum class ValueType{
     NIL,
     PAIR,
     BUILTIN_PROC,
+    LAMBDA
 };
 
 class Value;
@@ -33,6 +34,10 @@ public:
         return type;
     }
 
+    bool isBoolean() const {
+        return type == ValueType::BOOLEAN;
+    }
+    virtual bool isInteger() const = 0;
     bool isNil() const {
         return type == ValueType::NIL;
     }
@@ -42,10 +47,14 @@ public:
     bool isSelfEvaluating() const {
         return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::BUILTIN_PROC;
     }
+    bool isAtom() const {
+        return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::SYMBOL || type == ValueType::NIL;
+    }
 
     virtual std::optional<std::string> asSymbol() const {
         return std::nullopt;
     };
+
     virtual std::vector<ValuePtr> toVector() const {return {};};
     virtual std::string toString() const = 0;
 };
@@ -59,6 +68,7 @@ public:
     bool getValue() const {
         return value;
     }
+    bool isInteger() const override { return false; }
     std::string toString() const override;
 };
 
@@ -71,6 +81,9 @@ public:
     double asNumber() const {
         return value;
     }
+    bool isInteger() const override { 
+        return value == static_cast<int>(value);
+     }
     std::string toString() const override;
 };
 
@@ -80,6 +93,7 @@ private:
 public:
     StringValue(std::string value) : Value(ValueType::STRING), value{value} {}
 
+    bool isInteger() const override { return false; }
     std::string getValue() const {
         return value;
     }
@@ -92,6 +106,7 @@ private:
 public:
     SymbolValue(std::string value) : Value(ValueType::SYMBOL), value{value} {}
 
+    bool isInteger() const override { return false; }
     std::string getValue() const {
         return value;
     }
@@ -103,6 +118,7 @@ class NilValue : public Value {
 public:
     NilValue() : Value(ValueType::NIL) {}
 
+    bool isInteger() const override { return false; }
     std::string toString() const override;
 };
 
@@ -113,6 +129,7 @@ private:
 public:
     PairValue(ValuePtr car, ValuePtr cdr) : Value(ValueType::PAIR), car{car}, cdr{cdr} {}
 
+    bool isInteger() const override { return false; }
     ValuePtr getCar() const {
         return car;
     }
@@ -128,11 +145,22 @@ private:
     BuiltinFuncType* func;
 public:
     BuiltinProcValue(BuiltinFuncType* f) : Value(ValueType::BUILTIN_PROC), func{f} {}
+    
+    bool isInteger() const override { return false; }
     std::string toString() const override;
     auto getFunc() const {
         return func;
     }
 };
     
+class LambdaValue : public Value {
+private:
+    std::vector<ValuePtr> params;
+    std::vector<ValuePtr> body;
+public:
+    LambdaValue(std::vector<ValuePtr> params, std::vector<ValuePtr> body) : Value(ValueType::LAMBDA), params{params}, body{body} {}
+    bool isInteger() const override { return false; }
+    std::string toString() const override;
+};
 
 #endif

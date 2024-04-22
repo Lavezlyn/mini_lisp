@@ -29,6 +29,14 @@ std::string NilValue::toString() const {
     return "()";
 }
 
+std::string BuiltinProcValue::toString() const {
+    return "#<procedure>";
+}
+
+std::string LambdaValue::toString() const {
+    return "#<procedure>";
+}
+
 std::string PairValue::toString() const {
     std::string result = "(" + car->toString();
     auto cdr = getCdr();
@@ -65,6 +73,4 @@ std::vector<ValuePtr> PairValue:: toVector() const {
     }
 }
 
-std::string BuiltinProcValue::toString() const {
-    return "#<procedure>";
-}
+
