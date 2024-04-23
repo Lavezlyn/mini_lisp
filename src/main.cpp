@@ -6,7 +6,7 @@
 #include "./eval_env.h"
 
 int main() {
-    EvalEnv env;
+    std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
     while (true) {
         try {
             std::cout << ">>> " ;
@@ -18,7 +18,7 @@ int main() {
             auto tokens = Tokenizer::tokenize(line);
             Parser parser(std::move(tokens)); 
             auto value = parser.parse();
-            auto result = env.eval(std::move(value));
+            auto result = env->eval(std::move(value));
             std::cout << result->toString() << std::endl;
         } catch (std::runtime_error& e) {
             std::cerr << "Error: " << e.what() << std::endl;

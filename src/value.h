@@ -7,6 +7,8 @@
 #include <optional>
 #include <ostream>
 
+class EvalEnv;
+
 enum class ValueType{
     BOOLEAN,
     NUMERIC,
@@ -45,7 +47,7 @@ public:
         return type == ValueType::NUMERIC;
     }
     bool isSelfEvaluating() const {
-        return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::BUILTIN_PROC;
+        return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::BUILTIN_PROC || type == ValueType::LAMBDA;
     }
     bool isAtom() const {
         return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::SYMBOL || type == ValueType::NIL;
@@ -54,7 +56,9 @@ public:
     virtual std::optional<std::string> asSymbol() const {
         return std::nullopt;
     };
-
+    virtual std::optional<bool> asBoolean() const {
+        return std::nullopt;
+    };  
     virtual std::vector<ValuePtr> toVector() const {return {};};
     virtual std::string toString() const = 0;
 };
@@ -70,6 +74,7 @@ public:
     }
     bool isInteger() const override { return false; }
     std::string toString() const override;
+    std::optional<bool> asBoolean() const override { return value; }
 };
 
 class NumericValue : public Value {
@@ -107,9 +112,6 @@ public:
     SymbolValue(std::string value) : Value(ValueType::SYMBOL), value{value} {}
 
     bool isInteger() const override { return false; }
-    std::string getValue() const {
-        return value;
-    }
     std::string toString() const override;
     std::optional<std::string> asSymbol() const override { return value; }
 };
@@ -157,10 +159,15 @@ class LambdaValue : public Value {
 private:
     std::vector<ValuePtr> params;
     std::vector<ValuePtr> body;
+    std::shared_ptr<EvalEnv> parent;
+    std::shared_ptr<EvalEnv> child;
 public:
-    LambdaValue(std::vector<ValuePtr> params, std::vector<ValuePtr> body) : Value(ValueType::LAMBDA), params{params}, body{body} {}
+    LambdaValue(std::vector<ValuePtr> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env) : Value(ValueType::LAMBDA), params{params}, body{body}, parent{env}, child{nullptr} {}
     bool isInteger() const override { return false; }
     std::string toString() const override;
+    ValuePtr apply(const std::vector<ValuePtr>& args);
+    std::shared_ptr<EvalEnv> getEnv() { return parent; }
+    std::vector<std::string> getParams() const;
 };
 
 #endif

@@ -4,13 +4,15 @@
 #include "./value.h"
 #include <unordered_map>
 
-class EvalEnv{
+using ValuePtr = std::shared_ptr<Value>;
+class EvalEnv : public std::enable_shared_from_this<EvalEnv>{
 private:
     std::unordered_map<std::string, ValuePtr> env;
     std::shared_ptr<EvalEnv> parent {nullptr};    
-
+    EvalEnv(std::shared_ptr<EvalEnv> parent);
 public:
-    EvalEnv();  
+    static std::shared_ptr<EvalEnv> createGlobal();
+    std::shared_ptr<EvalEnv> createChild(const std::vector<std::string>& params, const std::vector<ValuePtr>& args);
     ValuePtr lookupBinding(const std::string& name);
     void defineBinding(const std::string& name, ValuePtr value);   
     ValuePtr eval(ValuePtr expr);

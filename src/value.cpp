@@ -3,6 +3,9 @@
 #include <string>
 #include <sstream>
 #include "./error.h"
+#include "./eval_env.h"
+
+class EvalEnv;
 
 std::string BooleanValue::toString() const {
     return value ? "#t" : "#f";
@@ -53,6 +56,7 @@ std::string PairValue::toString() const {
     return result;
 }
 
+
 std::vector<ValuePtr> PairValue:: toVector() const {
     try{
     std::vector<ValuePtr> result;
@@ -73,4 +77,26 @@ std::vector<ValuePtr> PairValue:: toVector() const {
     }
 }
 
+std::vector<std::string> LambdaValue::getParams() const {
+    std::vector<std::string> result;
+    for(const auto& param : params){
+        auto symbol = param->asSymbol();
+        if(!symbol){
+            throw LispError("Invalid parameter list");
+        }
+        result.push_back(*symbol);
+    }
+    return result;
+}
 
+ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args){
+    if(args.size() != params.size()){
+        throw LispError("Invalid number of arguments");
+    }
+    child = parent->createChild(getParams(), args);
+    ValuePtr result = nullptr;
+    for(const auto& expr : body){
+        result = child->eval(expr);
+    }
+    return result;
+}
