@@ -49,7 +49,7 @@ ValuePtr displayln(const std::vector<ValuePtr>& params){
 
 ValuePtr Error(const std::vector<ValuePtr>& params){
     if(params.size() > 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
     if(params.size() == 0){
         throw LispError("");
@@ -59,9 +59,9 @@ ValuePtr Error(const std::vector<ValuePtr>& params){
 
 ValuePtr Eval(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
-    return params[0]; //TODO
+    return params[0]; 
 }
 
 ValuePtr Exit(const std::vector<ValuePtr>& params){
@@ -73,7 +73,7 @@ ValuePtr Exit(const std::vector<ValuePtr>& params){
         }
         exit(static_cast<NumericValue*>(params[0].get())->asNumber());
     }
-    else throw LispError("Wrong number of arguments.");
+    else throw LispError("Incorrect number of arguments.");
 }
 
 
@@ -90,7 +90,7 @@ ValuePtr add(const std::vector<ValuePtr>& params){
 
 ValuePtr sub(const std::vector<ValuePtr>& params){
     double result = 0;
-    if (params.size() == 0) throw LispError("Wrong number of arguments.");
+    if (params.size() == 0) throw LispError("Incorrect number of arguments.");
     if (params.size() == 1) {
         if(!params[0]->isNumber()){
             throw LispError("Cannot substract a non-numeric value.");
@@ -122,7 +122,7 @@ ValuePtr mul(const std::vector<ValuePtr>& params){
 
 ValuePtr divide(const std::vector<ValuePtr>& params){
     double result = 1;
-    if (params.size() == 0) throw LispError("Wrong number of arguments.");
+    if (params.size() == 0) throw LispError("Incorrect number of arguments.");
     if (params.size() == 1){
         if(!params[0]->isNumber()){
             throw LispError("Cannot divide a non-numeric value.");
@@ -145,7 +145,7 @@ ValuePtr divide(const std::vector<ValuePtr>& params){
 
 ValuePtr ABS(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
     if(!params[0]->isNumber()){
         throw LispError("Cannot take the absolute value of a non-numeric value.");
@@ -156,37 +156,37 @@ ValuePtr ABS(const std::vector<ValuePtr>& params){
 
 ValuePtr expt(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot raise a non-numeric value to a non-numeric power.");
+        throw LispError("Non-numeric value");
     }
     double tmp1 = static_cast<NumericValue*>(params[0].get())->asNumber();
     double tmp2 = static_cast<NumericValue*>(params[1].get())->asNumber();
-    if(tmp1 == 0 || tmp2 == 0) throw LispError("Undefined.");
+    if(tmp1 == 0 || tmp2 == 0) throw LispError("Undefined mathematic form");
     double result = std::pow(tmp1, tmp2);
     return std::make_shared<NumericValue>(result);  
 }
 
 ValuePtr quotient(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot divide a non-numeric value by a non-numeric value.");
+        throw LispError("Non-numeric value");
     }
     double x = static_cast<NumericValue*>(params[0].get())->asNumber();
     double y = static_cast<NumericValue*>(params[1].get())->asNumber();
-    if(y == 0) throw LispError("Division by zero.");
+    if(y == 0) throw LispError("Division by zero");
     return std::make_shared<NumericValue>(static_cast<int>(x/y));  
 }
 
 ValuePtr modulo(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot divide a non-numeric value by a non-numeric value.");
+        throw LispError("Non-numeric value");
     }
     double x = static_cast<NumericValue*>(params[0].get())->asNumber();
     double y = static_cast<NumericValue*>(params[1].get())->asNumber();
@@ -198,10 +198,10 @@ ValuePtr modulo(const std::vector<ValuePtr>& params){
 
 ValuePtr Remainder(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot divide a non-numeric value by a non-numeric value.");
+        throw LispError("Non-numeric value");
     }
     double x = static_cast<NumericValue*>(params[0].get())->asNumber();
     double y = static_cast<NumericValue*>(params[1].get())->asNumber();
@@ -212,7 +212,7 @@ ValuePtr Remainder(const std::vector<ValuePtr>& params){
 
 ValuePtr eq(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
     if(params[0]->getType() != params[1]->getType())
         return std::make_shared<BooleanValue>(false);
@@ -225,7 +225,7 @@ ValuePtr eq(const std::vector<ValuePtr>& params){
 
 ValuePtr equal(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
     if(params[0]->getType() != params[1]->getType())
         return std::make_shared<BooleanValue>(false);
@@ -249,7 +249,7 @@ ValuePtr equal(const std::vector<ValuePtr>& params){
 
 ValuePtr NOT(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments.");
     }
     if(params[0]->getType()==ValueType::BOOLEAN && !params[0]->asBoolean()){
         return std::make_shared<BooleanValue>(true);
@@ -259,20 +259,20 @@ ValuePtr NOT(const std::vector<ValuePtr>& params){
 
 ValuePtr numEq(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot compare non-numeric values.");
+        throw LispError("Non-numeric value");
     }
     return std::make_shared<BooleanValue>(static_cast<NumericValue*>(params[0].get())->asNumber() == static_cast<NumericValue*>(params[1].get())->asNumber());
 }
 
 ValuePtr odd(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber()){
-        throw LispError("Cannot check if a non-numeric value is odd.");
+        throw LispError("Non-numeric value");
     }
     double result = static_cast<NumericValue*>(params[0].get())->asNumber();
     return std::make_shared<BooleanValue>(static_cast<int>(result) % 2 != 0);  
@@ -280,10 +280,10 @@ ValuePtr odd(const std::vector<ValuePtr>& params){
 
 ValuePtr even(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber()){
-        throw LispError("Cannot check if a non-numeric value is even.");
+        throw LispError("Non-numeric value");
     }
     double result = static_cast<NumericValue*>(params[0].get())->asNumber();
     return std::make_shared<BooleanValue>(static_cast<int>(result) % 2 == 0);  
@@ -291,10 +291,10 @@ ValuePtr even(const std::vector<ValuePtr>& params){
 
 ValuePtr zero(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber()){
-        throw LispError("Cannot check if a non-numeric value is zero.");
+        throw LispError("Non-numeric value");
     }
     double result = static_cast<NumericValue*>(params[0].get())->asNumber();
     return std::make_shared<BooleanValue>(result == 0);  
@@ -302,10 +302,10 @@ ValuePtr zero(const std::vector<ValuePtr>& params){
 
 ValuePtr greater(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot compare non-numeric values.");
+        throw LispError("Non-numeric value");
     }
     double result1 = static_cast<NumericValue*>(params[0].get())->asNumber();
     double result2 = static_cast<NumericValue*>(params[1].get())->asNumber();
@@ -314,10 +314,10 @@ ValuePtr greater(const std::vector<ValuePtr>& params){
 
 ValuePtr less(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot compare non-numeric values.");
+        throw LispError("Non-numeric value");
     }
     double result1 = static_cast<NumericValue*>(params[0].get())->asNumber();
     double result2 = static_cast<NumericValue*>(params[1].get())->asNumber();
@@ -326,10 +326,10 @@ ValuePtr less(const std::vector<ValuePtr>& params){
 
 ValuePtr lessEq(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot compare non-numeric values.");
+        throw LispError("Non-numeric value");
     }
     double result1 = static_cast<NumericValue*>(params[0].get())->asNumber();
     double result2 = static_cast<NumericValue*>(params[1].get())->asNumber();
@@ -338,10 +338,10 @@ ValuePtr lessEq(const std::vector<ValuePtr>& params){
 
 ValuePtr greaterEq(const std::vector<ValuePtr>& params){
     if(params.size() != 2){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(!params[0]->isNumber() || !params[1]->isNumber()){
-        throw LispError("Cannot compare non-numeric values.");
+        throw LispError("Non-numeric value");
     }
     double result1 = static_cast<NumericValue*>(params[0].get())->asNumber();
     double result2 = static_cast<NumericValue*>(params[1].get())->asNumber();
@@ -350,42 +350,42 @@ ValuePtr greaterEq(const std::vector<ValuePtr>& params){
 
 ValuePtr boolean(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->isBoolean());
 }
 
 ValuePtr atom(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->isAtom());
 }
 
 ValuePtr null(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->isNil());
 }   
 
 ValuePtr number(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->isNumber());
 }
 
 ValuePtr pair(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->getType() == ValueType::PAIR);
 }
 
 ValuePtr procedure(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->getType() == ValueType::BUILTIN_PROC);
 }
@@ -393,21 +393,21 @@ ValuePtr procedure(const std::vector<ValuePtr>& params){
 //TODO：determine before evaluation
 ValuePtr symbol(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->asSymbol().has_value());
 }
 
 ValuePtr string(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->getType() == ValueType::STRING);
 }
 
 ValuePtr integer(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     return std::make_shared<BooleanValue>(params[0]->isInteger());
 }
@@ -415,7 +415,7 @@ ValuePtr integer(const std::vector<ValuePtr>& params){
 //TODO: wrong performance
 ValuePtr list(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
-        throw LispError("Wrong number of arguments.");
+        throw LispError("Incorrect number of arguments");
     }
     if(params[0]->getType() != ValueType::PAIR){
         return std::make_shared<BooleanValue>(false);

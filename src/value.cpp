@@ -33,11 +33,11 @@ std::string NilValue::toString() const {
 }
 
 std::string BuiltinProcValue::toString() const {
-    return "#<procedure>";
+    return "#<BuiltinProcedure>";
 }
 
 std::string LambdaValue::toString() const {
-    return "#<procedure>";
+    return "#<LambdaProcedure>";
 }
 
 std::string PairValue::toString() const {
@@ -56,24 +56,24 @@ std::string PairValue::toString() const {
     return result;
 }
 
-
 std::vector<ValuePtr> PairValue:: toVector() const {
     try{
-    std::vector<ValuePtr> result;
-    result.push_back(this->car);
-    auto cdr = getCdr();
-    while (cdr->getType() == ValueType::PAIR || cdr->getType() == ValueType::NIL){
-        if (cdr->getType() == ValueType::NIL){
-            return result;
+        std::vector<ValuePtr> result;
+        result.push_back(this->car);
+        auto cdr = getCdr();
+        while (cdr->getType() == ValueType::PAIR || cdr->getType() == ValueType::NIL){
+            if (cdr->getType() == ValueType::NIL){
+                return result;
+            }
+            auto pair = static_cast<PairValue*>(cdr.get());
+            result.push_back(pair->getCar());
+            cdr = pair->getCdr();
         }
-        auto pair = static_cast<PairValue*>(cdr.get());
-        result.push_back(pair->getCar());
-        cdr = pair->getCdr();
+        result.push_back(cdr);
+        return result;
     }
-    result.push_back(cdr);
-    return result;
-    }catch(...){
-        throw RuntimeError("Error in toVector");
+    catch(...){
+        throw RuntimeError("Error in Vectorization");
     }
 }
 
@@ -91,7 +91,7 @@ std::vector<std::string> LambdaValue::getParams() const {
 
 ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args){
     if(args.size() != params.size()){
-        throw LispError("Invalid number of arguments");
+        throw LispError("Incorrect number of arguments");
     }
     child = parent->createChild(getParams(), args);
     ValuePtr result = nullptr;

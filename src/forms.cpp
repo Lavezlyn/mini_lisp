@@ -1,7 +1,8 @@
 #include "./forms.h"
 #include "./error.h"
-#include <iostream>
+
 using namespace std::literals;
+
 const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
     {"define"s, defineForm},
     {"quote"s, quoteForm},
@@ -13,7 +14,7 @@ const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
 
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
     if (auto name = args[0]->asSymbol()) {
-        e.defineBinding(*name, args[1]);
+        e.defineBinding(*name, e.eval(args[1]));
         return std::make_shared<NilValue>();
     } 
     else if (args[0]->getType() == ValueType::PAIR){
@@ -29,20 +30,20 @@ ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
         return std::make_shared<NilValue>();
     }
     else {
-        throw LispError("Unimplemented");
+        throw LispError("Malformed define form");
     }
 }
 
 ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
     if (args.size() != 1) {
-        throw LispError("Too many operands in the form");
+        throw LispError("Incorrect number of arguments");
     }
     return args[0];
 }
 
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
     if (args.size() != 3) {
-        throw LispError("Too many operands in the form");
+        throw LispError("Incorrest number of arguments");
     }
     auto cond = e.eval(args[0]);
     if (cond->isBoolean()){
@@ -64,7 +65,7 @@ ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& e){
             }
         }
     }
-    return std::make_shared<BooleanValue>(true);
+    return e.eval(args[args.size()-1]);
 }
 
 ValuePtr orForm(const std::vector<ValuePtr>& args, EvalEnv& e){

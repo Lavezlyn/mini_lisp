@@ -5,8 +5,12 @@
 #include <stdexcept>
 #include <memory>
 #include <deque>
+#include <iostream>
 
 ValuePtr Parser::parse(){
+    if(tokens.empty()){
+        throw SyntaxError("Unexpected end of file");
+    }
     auto token = tokens.front().get();
     if(token->getType() == TokenType::NUMERIC_LITERAL){
         auto value = static_cast<NumericLiteralToken&>(*token).getValue();
@@ -63,23 +67,34 @@ ValuePtr Parser::parse(){
         return this->parseTails();
     }
     else{
-        throw std::runtime_error("Invalid token");
+        throw SyntaxError("Invalid token");
     }
 }
 
 ValuePtr Parser::parseTails(){
-   if(tokens.front()->getType() == TokenType::RIGHT_PAREN){
+    if(tokens.empty()){
+        throw SyntaxError("Unexpected end of file");
+    }
+    if(tokens.front()->getType() == TokenType::RIGHT_PAREN){
         tokens.pop_front();
         return std::make_shared<NilValue>();
-   } 
-   auto car = this->parse();
-   if(tokens.front()->getType() == TokenType::DOT){
+    } 
+    auto car = this->parse();
+    if(tokens.empty()){
+        throw SyntaxError("Unexpected end of file");
+    }
+    if(tokens.front()->getType() == TokenType::DOT){
         tokens.pop_front();
         auto cdr = this->parse();
+
+        if(tokens.front()->getType() != TokenType::RIGHT_PAREN) {
+        throw SyntaxError("Invalid token after dot. Expect a right parenthesis");
+       }
+
         tokens.pop_front();
         return std::make_shared<PairValue>(car, cdr);
-   }
-   else{
+    }
+    else{
         auto cdr = this->parseTails();
         return std::make_shared<PairValue>(car, cdr);
    }

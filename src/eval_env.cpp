@@ -5,14 +5,8 @@
 #include <algorithm>
 #include <iterator>
 #include <unordered_set>
-#include <iostream>
 
 using namespace std::literals;
-std::unordered_set<std::string> special_forms = {"define"s};
-std::unordered_set<std::string> calculator = {"+"s, "-"s, "*"s, "/"s, "print"s};
-std::unordered_set<std::string> typeCheck = { "atom?"s, "boolean?"s, "number?"s, 
-                                            "pair?"s, "procedure?"s, "symbol?"s, 
-                                            "null?"s,"string?"s, "integer?"s, "list?"s };
 
 EvalEnv::EvalEnv(std::shared_ptr<EvalEnv> parent) : parent{parent} {
     for(auto& [name, proc] : BUILTIN){
@@ -62,10 +56,11 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
     if (expr->getType() == ValueType::PAIR){
         auto Pair = static_cast<PairValue*>(expr.get());
         auto op = Pair->getCar()->asSymbol();
-        if (SPECIAL_FORMS.find(*op) != SPECIAL_FORMS.end()){
+        if (op.has_value() && SPECIAL_FORMS.find(*op) != SPECIAL_FORMS.end()){
             return SPECIAL_FORMS.at(*op)(Pair->getCdr()->toVector(), *this);   
         }
-        else{
+        else
+        {
             ValuePtr operands = Pair->getCdr();
             std::vector<ValuePtr> args = evalList(operands);
             auto proc = this->eval(Pair->getCar());
@@ -73,12 +68,11 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
         }
     }
     if (expr->isNil()){
-        throw LispError("Evaluating nil is prohibited.");
+        throw LispError("Cannot evaluate nil");
     }
     else {
-        throw LispError("Unimplemented.");
+        throw LispError("Undefined expression type");
     }
-
 }
 
 std::vector<ValuePtr> EvalEnv::evalList(ValuePtr expr) {
@@ -99,6 +93,6 @@ ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
         return lambda->apply(args);
     } 
     else {
-        throw LispError("Unimplemented");
+        throw LispError("Undefined procedure type");
     }
 }
