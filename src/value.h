@@ -56,9 +56,7 @@ public:
     virtual std::optional<std::string> asSymbol() const {
         return std::nullopt;
     };
-    virtual std::optional<bool> asBoolean() const {
-        return std::nullopt;
-    };  
+    
     virtual std::vector<ValuePtr> toVector() const {return {};};
     virtual std::string toString() const = 0;
 };
@@ -74,7 +72,6 @@ public:
     }
     bool isInteger() const override { return false; }
     std::string toString() const override;
-    std::optional<bool> asBoolean() const override { return value; }
 };
 
 class NumericValue : public Value {
@@ -137,6 +134,9 @@ public:
     }
     ValuePtr getCdr() const {
         return cdr;
+    }
+    void setCdr(ValuePtr cdr) {
+        this->cdr = cdr;
     }
     std::string toString() const override;
     std::vector<ValuePtr> toVector() const override;

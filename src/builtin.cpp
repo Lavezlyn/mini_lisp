@@ -2,6 +2,7 @@
 #include "./error.h"
 #include <iostream> 
 #include <cmath>
+#include <cstdlib>
 
 class EvalEnv;
 
@@ -237,7 +238,7 @@ ValuePtr equal(const std::vector<ValuePtr>& params){
             auto list2 = static_cast<PairValue*>(params[1].get())->toVector();
             if(list1.size() != list2.size()) return std::make_shared<BooleanValue>(false);
             for(size_t i = 0; i < list1.size(); i++){
-                if(!equal({list1[i], list2[i]})->asBoolean()){
+                if(!static_cast<BooleanValue*>(equal({list1[i], list2[i]}).get())->getValue()){
                     return std::make_shared<BooleanValue>(false);
                 }
             }
@@ -251,7 +252,7 @@ ValuePtr NOT(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
         throw LispError("Incorrect number of arguments.");
     }
-    if(params[0]->getType()==ValueType::BOOLEAN && !params[0]->asBoolean()){
+    if(params[0]->getType()==ValueType::BOOLEAN && !static_cast<BooleanValue*>(params[0].get())->getValue()){
         return std::make_shared<BooleanValue>(true);
     }
     return std::make_shared<BooleanValue>(false);
@@ -412,7 +413,6 @@ ValuePtr integer(const std::vector<ValuePtr>& params){
     return std::make_shared<BooleanValue>(params[0]->isInteger());
 }
 
-//TODO: wrong performance
 ValuePtr list(const std::vector<ValuePtr>& params){
     if(params.size() != 1){
         throw LispError("Incorrect number of arguments");
@@ -420,14 +420,186 @@ ValuePtr list(const std::vector<ValuePtr>& params){
     if(params[0]->getType() != ValueType::PAIR){
         return std::make_shared<BooleanValue>(false);
     }
-    auto list = static_cast<PairValue*>(params[0].get())->toVector();
-    while(!list.empty()){
-        if(list.back()->getType() != ValueType::PAIR && !list.back()->isNil()){
-            return std::make_shared<BooleanValue>(false);
-        }
-        list.pop_back();
+    ValuePtr current = params[0];
+    while (current->getType() == ValueType::PAIR){
+        current = static_cast<PairValue*>(current.get())->getCdr();
     }
-    return std::make_shared<BooleanValue>(true);
+
+    return std::make_shared<BooleanValue>(current->isNil());
+}
+
+ValuePtr append(const std::vector<ValuePtr>& params){
+    if(params.size() == 0){
+        return std::make_shared<NilValue>();
+    }
+    if(params.size() == 1){
+        auto islist = list({params[0]});
+        if(!static_cast<BooleanValue*>(islist.get())->getValue()){
+            throw LispError("Not a list");
+        }
+        return params[0];
+    }
+    if(params.size() == 2){
+        auto islist1 = list({params[0]});
+        auto islist2 = list({params[1]});
+        if(!static_cast<BooleanValue*>(islist1.get())->getValue() || !static_cast<BooleanValue*>(islist2.get())->getValue()){
+            throw LispError("Not a list");
+        }
+        auto pair = static_cast<PairValue*>(params[0].get());
+        std::vector<ValuePtr> original = pair->toVector();
+        auto pair2 = static_cast<PairValue*>(params[1].get());
+        std::vector<ValuePtr> original2 = pair2->toVector();
+        for(auto& i: original2){
+            original.push_back(i);
+        }
+        return makelist(original);
+    }
+    throw LispError("Incorrect number of arguments");
+}
+
+ValuePtr car(const std::vector<ValuePtr>& params){
+    if(params.size() != 1){
+        throw LispError("Incorrect number of arguments");
+    }
+    if(params[0]->getType() != ValueType::PAIR){
+        throw LispError("Not a pair");
+    }
+    return static_cast<PairValue*>(params[0].get())->getCar();
+}
+
+ValuePtr cdr(const std::vector<ValuePtr>& params){
+    if(params.size() != 1){
+        throw LispError("Incorrect number of arguments");
+    }
+    if(params[0]->getType() != ValueType::PAIR){
+        throw LispError("Not a pair");
+    }
+    return static_cast<PairValue*>(params[0].get())->getCdr();
+}
+
+ValuePtr cons(const std::vector<ValuePtr>& params){
+    if(params.size() != 2){
+        throw LispError("Incorrect number of arguments");
+    }
+    return std::make_shared<PairValue>(params[0], params[1]);
+}
+
+ValuePtr length(const std::vector<ValuePtr>& params){
+    if(params.size() != 1){
+        throw LispError("Incorrect number of arguments");
+    }
+    auto isList = list({params[0]});
+    if(!static_cast<BooleanValue*>(isList.get())->getValue()){
+        throw LispError("Not a list");
+    }
+    ValuePtr current = params[0];
+    int result = 0;
+    while (current->getType() == ValueType::PAIR){
+        result++;
+        current = static_cast<PairValue*>(current.get())->getCdr();
+    }
+    return std::make_shared<NumericValue>(result);
+}
+
+ValuePtr makelist(const std::vector<ValuePtr>& params){
+    if(params.size() == 0){
+        return std::make_shared<NilValue>();
+    }
+    ValuePtr cdr = makelist({params.begin() + 1, params.end()});
+    return std::make_shared<PairValue>(params[0], cdr);
+}
+
+ValuePtr map(const std::vector<ValuePtr>& params){
+    if(params.size() != 2){
+        throw LispError("Incorrect number of arguments");
+    }
+    if(params[0]->getType() != ValueType::BUILTIN_PROC && params[0]->getType() != ValueType::LAMBDA){
+        throw LispError("Not a procedure");
+    }
+    auto islist = list({params[1]});
+    if(!static_cast<BooleanValue*>(islist.get())->getValue()){
+        throw LispError("Not a list");
+    }
+    if(params[0]->getType() == ValueType::BUILTIN_PROC){
+        auto func = static_cast<BuiltinProcValue*>(params[0].get())->getFunc();
+        std::vector<ValuePtr> result = static_cast<PairValue*>(params[1].get())->toVector();
+        std::vector<ValuePtr> newlist;
+        for(auto& i: result){
+            newlist.push_back(func({i}));
+        }
+        return makelist(newlist);
+    }
+    if(params[0]->getType() == ValueType::LAMBDA){
+        auto lambda = static_cast<LambdaValue*>(params[0].get());
+        std::vector<ValuePtr> result = static_cast<PairValue*>(params[1].get())->toVector();
+        std::vector<ValuePtr> newlist;
+        for(auto& i: result){
+            newlist.push_back(lambda->apply({i}));
+        }
+        return makelist(newlist);
+    }
+}
+
+ValuePtr filter(const std::vector<ValuePtr>& params){
+    if(params.size() != 2){
+        throw LispError("Incorrect number of arguments");
+    }
+    if(params[0]->getType() != ValueType::BUILTIN_PROC && params[0]->getType() != ValueType::LAMBDA){
+        throw LispError("Not a procedure");
+    }
+    auto islist = list({params[1]});
+    if(!static_cast<BooleanValue*>(islist.get())->getValue()){
+        throw LispError("Not a list");
+    }   
+    if(params[0]->getType() == ValueType::BUILTIN_PROC){
+        auto func = static_cast<BuiltinProcValue*>(params[0].get())->getFunc();
+        std::vector<ValuePtr> result = static_cast<PairValue*>(params[1].get())->toVector();
+        std::vector<ValuePtr> newlist;
+        for(auto& i: result){
+            if((func({i}))->isBoolean() && !static_cast<BooleanValue*>(func({i}).get())->getValue()){
+                continue;
+            }
+            else newlist.push_back(i);
+        }
+        return makelist(newlist);
+    }
+    if(params[0]->getType() == ValueType::LAMBDA){
+        auto lambda = static_cast<LambdaValue*>(params[0].get());
+        std::vector<ValuePtr> result = static_cast<PairValue*>(params[1].get())->toVector();
+        std::vector<ValuePtr> newlist;
+        for(auto& i: result){
+            if((lambda->apply({i}))->isBoolean() && !static_cast<BooleanValue*>(lambda->apply({i}).get())->getValue()){
+                continue;
+            }
+            else newlist.push_back(i);
+        }
+        return makelist(newlist);
+    }
+}
+
+ValuePtr reduce(const std::vector<ValuePtr>& params){
+    if(params.size() != 2){
+        throw LispError("Incorrect number of arguments");
+    }
+    if(params[0]->getType() != ValueType::BUILTIN_PROC && params[0]->getType() != ValueType::LAMBDA){
+        throw LispError("First argument must be a procedure");
+    }
+    auto islist = list({params[1]});
+    if(!static_cast<BooleanValue*>(islist.get())->getValue()){
+        throw LispError("Second argument must be a list");
+    }
+    if(params[0]->getType() == ValueType::BUILTIN_PROC){
+        auto proc = static_cast<BuiltinProcValue*>(params[0].get())->getFunc();
+        int len = static_cast<NumericValue*>(length({params[1]}).get())->asNumber();
+        if(len==1) return static_cast<PairValue*>(params[1].get())->getCar();
+        else return proc({car({params[1]}), reduce({params[0], cdr({params[1]})})});
+    }
+    if(params[0]->getType() == ValueType::LAMBDA){
+        auto lambda = static_cast<LambdaValue*>(params[0].get());
+        int len = static_cast<NumericValue*>(length({params[1]}).get())->asNumber();
+        if(len==1) return static_cast<PairValue*>(params[1].get())->getCar();
+        else return lambda->apply({car({params[1]}), reduce({params[0], cdr({params[1]})})});
+    }
 }
 
 extern std::unordered_map<std::string, ValuePtr> BUILTIN{
@@ -468,7 +640,16 @@ extern std::unordered_map<std::string, ValuePtr> BUILTIN{
     {"null?", std::make_shared<BuiltinProcValue>(null)},
     {"string?", std::make_shared<BuiltinProcValue>(string)},
     {"integer?", std::make_shared<BuiltinProcValue>(integer)},
-    {"list?", std::make_shared<BuiltinProcValue>(list)}
+    {"list?", std::make_shared<BuiltinProcValue>(list)},
+    {"append", std::make_shared<BuiltinProcValue>(append)},
+    {"cons", std::make_shared<BuiltinProcValue>(cons)},
+    {"car", std::make_shared<BuiltinProcValue>(car)},
+    {"cdr", std::make_shared<BuiltinProcValue>(cdr)},
+    {"length", std::make_shared<BuiltinProcValue>(length)},
+    {"list", std::make_shared<BuiltinProcValue>(makelist)},
+    {"map", std::make_shared<BuiltinProcValue>(map)},
+    {"filter", std::make_shared<BuiltinProcValue>(filter)},
+    {"reduce", std::make_shared<BuiltinProcValue>(reduce)}
 };
 
 

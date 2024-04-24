@@ -4,8 +4,6 @@
 #include "./value.h"
 #include <unordered_map>    
 
-
-
 ValuePtr add(const std::vector<ValuePtr>& args);
 ValuePtr sub(const std::vector<ValuePtr>& args);
 ValuePtr mul(const std::vector<ValuePtr>& args);
@@ -37,7 +35,15 @@ ValuePtr null(const std::vector<ValuePtr>& args);
 ValuePtr string(const std::vector<ValuePtr>& args);
 ValuePtr integer(const std::vector<ValuePtr>& args);
 ValuePtr list(const std::vector<ValuePtr>& args);
-
+ValuePtr append(const std::vector<ValuePtr>& args);
+ValuePtr car(const std::vector<ValuePtr>& args);
+ValuePtr cdr(const std::vector<ValuePtr>& args);
+ValuePtr cons(const std::vector<ValuePtr>& args);
+ValuePtr length(const std::vector<ValuePtr>& args);
+ValuePtr makelist(const std::vector<ValuePtr>& args);
+ValuePtr map(const std::vector<ValuePtr>& args);
+ValuePtr filter(const std::vector<ValuePtr>& args);
+ValuePtr reduce(const std::vector<ValuePtr>& args);
 
 extern std::unordered_map<std::string, ValuePtr> BUILTIN;
 
