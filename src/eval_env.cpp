@@ -54,9 +54,14 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
         }
     }
     if (expr->getType() == ValueType::PAIR){
-        auto Pair = static_cast<PairValue*>(expr.get());
-        auto op = Pair->getCar()->asSymbol();
-        if (op.has_value() && SPECIAL_FORMS.find(*op) != SPECIAL_FORMS.end()){
+        auto islist = list({expr});
+        if(!static_cast<BooleanValue*>(islist.get())->getValue()){
+            return expr;
+        }
+        else{
+            auto Pair = static_cast<PairValue*>(expr.get());
+            auto op = Pair->getCar()->asSymbol();
+        if (op.has_value() && SPECIAL_FORMS.find(*op) != SPECIAL_FORMS.end()){  
             return SPECIAL_FORMS.at(*op)(Pair->getCdr()->toVector(), *this);   
         }
         else
@@ -65,6 +70,7 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
             std::vector<ValuePtr> args = evalList(operands);
             auto proc = this->eval(Pair->getCar());
             return this->apply(proc, args);
+        }
         }
     }
     if (expr->isNil()){
