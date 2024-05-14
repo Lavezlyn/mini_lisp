@@ -22,7 +22,7 @@ enum class ValueType{
 
 class Value;
 using ValuePtr = std::shared_ptr<Value>;
-using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&);
+using BuiltinFuncType = ValuePtr(const std::vector<ValuePtr>&, EvalEnv&);
 
 class Value{
 private:

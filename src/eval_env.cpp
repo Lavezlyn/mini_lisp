@@ -47,15 +47,13 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
         return expr;
     }
     if (auto symbol = expr->asSymbol()){
-        if (auto value = lookupBinding(*symbol)){
+        if (auto value = lookupBinding(*symbol))
             return eval(value);
-        }
-        else{
+        else
             throw LispError("Variable " + *symbol + " not defined.");
-        }
     }
     if (expr->getType() == ValueType::PAIR){
-        auto islist = list({expr});
+        auto islist = list({expr}, *this);
         if(!static_cast<BooleanValue*>(islist.get())->getValue()){
             return expr;
         }
@@ -70,7 +68,9 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
             ValuePtr operands = Pair->getCdr();
             std::vector<ValuePtr> args = evalList(operands);
             auto proc = this->eval(Pair->getCar());
-            return this->apply(proc, args);
+            if(proc->getType()==ValueType::BUILTIN_PROC || proc->getType()==ValueType::LAMBDA)
+                return this->apply(proc, args);
+            else return expr;
         }
         }
     }
@@ -93,13 +93,10 @@ std::vector<ValuePtr> EvalEnv::evalList(ValuePtr expr) {
 ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
     if (typeid(*proc) == typeid(BuiltinProcValue)) {
         auto procedure = static_cast<BuiltinProcValue*>(proc.get())->getFunc();
-        return procedure(args);
+        return procedure(args, *this);
     } 
-    if (typeid(*proc) == typeid(LambdaValue)) {
+    else if (typeid(*proc) == typeid(LambdaValue)) {
         auto lambda = static_cast<LambdaValue*>(proc.get());
         return lambda->apply(args);
     } 
-    else {
-        throw LispError("Undefined procedure type");
-    }
 }

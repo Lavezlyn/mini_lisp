@@ -1,11 +1,13 @@
 #include "./forms.h"
 #include "./error.h"
+#include "./builtin.h"
 
 using namespace std::literals;
 
 const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
     {"define"s, defineForm},
     {"quote"s, quoteForm},
+    {"quasiquote"s,quasiquoteForm},
     {"if"s, ifForm},
     {"and"s, andForm},
     {"or"s, orForm},
@@ -17,6 +19,9 @@ const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
 
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
     if (auto name = args[0]->asSymbol()) {
+        if (args[1]->getType() == ValueType::SYMBOL){
+            e.defineBinding(*name, args[1]);
+        }
         e.defineBinding(*name, e.eval(args[1]));
         return std::make_shared<NilValue>();
     } 
@@ -100,6 +105,7 @@ ValuePtr condForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     for(size_t i = 0; i < args.size(); i++){
         auto Pair = static_cast<PairValue*>(args[i].get());
         std::vector<ValuePtr> PairVec = Pair->toVector();
+        if (PairVec.size() == 1){return e.eval(PairVec[0]);}
         if(PairVec[0]->asSymbol() && *PairVec[0]->asSymbol() == "else"s){
             if(i == args.size() - 1) {
                 ValuePtr result = nullptr;
@@ -149,4 +155,28 @@ ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& e){
         result = e.eval(i);
     }
     return result;
+}
+
+ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& e){
+    //FixMe
+    if(args.size() != 1)
+        throw LispError("Incorrect number of arguments for 'quasiquote'");
+    if(args[0]->getType() != ValueType::PAIR)
+        return args[0];
+    auto Pair = static_cast<PairValue*>(args[0].get());
+    std::vector<ValuePtr> newArgs;
+    for(const auto& arg : Pair->toVector()){
+        if(arg->getType() == ValueType::PAIR){
+            auto Pair2 = static_cast<PairValue*>(arg.get());
+            std::vector<ValuePtr> PairVec = Pair2->toVector();
+            if(PairVec.size() > 0 && PairVec[0]->asSymbol() && *PairVec[0]->asSymbol() == "unquote"s){
+                if(PairVec.size() != 2)
+                    throw LispError("Invalid unquote form");
+                newArgs.push_back(e.eval(PairVec[1]));
+            }
+            else newArgs.push_back(arg);
+        }
+        else newArgs.push_back(arg);
+    }
+    return makelist(newArgs, e);
 }
