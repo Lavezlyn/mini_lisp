@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <iterator>
 #include <unordered_set>
-#include <iostream>
 
 using namespace std::literals;
 
@@ -17,7 +16,8 @@ EvalEnv::EvalEnv(std::shared_ptr<EvalEnv> parent) : parent{parent} {
 
 std::shared_ptr<EvalEnv> EvalEnv::createGlobal(){
         return std::shared_ptr<EvalEnv>(new EvalEnv(nullptr));
-    }; 
+}; 
+
 std::shared_ptr<EvalEnv> EvalEnv::createChild(const std::vector<std::string>& params, const std::vector<ValuePtr>& args) {
     auto child = std::shared_ptr<EvalEnv>(new EvalEnv(shared_from_this()));
     for (size_t i = 0; i < params.size(); i++) {
@@ -31,11 +31,11 @@ void EvalEnv::defineBinding(const std::string& name, ValuePtr value){
 }
 
 ValuePtr EvalEnv::lookupBinding(const std::string& name){
-    if(env.find(name) == env.end() && parent){
-        return parent->lookupBinding(name);
+    if(this->env.find(name) == this->env.end() && this->parent){
+        return this->parent->lookupBinding(name);
     }
-    else if(env.find(name) != env.end()){
-        return env[name];
+    else if(this->env.find(name) != this->env.end()){
+        return this->env[name];
     }
     else{
         throw LispError("Variable " + name + " not defined.");

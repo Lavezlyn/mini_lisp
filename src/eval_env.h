@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 using ValuePtr = std::shared_ptr<Value>;
+
 class EvalEnv : public std::enable_shared_from_this<EvalEnv>{
 private:
     std::unordered_map<std::string, ValuePtr> env;

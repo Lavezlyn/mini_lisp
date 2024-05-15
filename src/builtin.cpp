@@ -7,15 +7,16 @@
 class EvalEnv;
 
 ValuePtr apply(const std::vector<ValuePtr>& params, EvalEnv& e){
-    //FixMe: should use eval environment
     if(params.size() != 2)
         throw LispError("Incorrect number of arguments.");
     auto proc = params[0];
-    std::vector<ValuePtr> result;
     auto islist = list({params[1]}, e);
     if(!static_cast<BooleanValue*>(islist.get())->getValue())
         throw LispError("Not a list");
-    result = static_cast<PairValue*>(params[1].get())->toVector();
+    std::vector<ValuePtr> origin = static_cast<PairValue*>(params[1].get())->toVector();
+    std::vector<ValuePtr> result;
+    for(const auto& i:origin)
+        result.push_back(e.eval(i));
     if(proc->getType() == ValueType::BUILTIN_PROC){
         auto func = static_cast<BuiltinProcValue*>(proc.get())->getFunc();
         return func(result, e);
@@ -201,7 +202,6 @@ ValuePtr modulo(const std::vector<ValuePtr>& params, EvalEnv&){
     double y = static_cast<NumericValue*>(params[1].get())->asNumber();
     if(y == 0) throw LispError("Division by zero.");
     double result = x - y * std::floor(x / y);
-    //TODO
     return std::make_shared<NumericValue>(result);
 }
 
@@ -220,10 +220,6 @@ ValuePtr Remainder(const std::vector<ValuePtr>& params, EvalEnv&){
 }
 
 ValuePtr eq(const std::vector<ValuePtr>& params, EvalEnv& e){
-    //FixMe: (define x '(1 2 3)) (eq? x x) => #t but return #f
-    // (define y x) cannot define! but it should
-    // (eq? x y) => #t
-    // (define z '(1 2 3)) (eq? x z) => #f
     if(params.size() != 2){
         throw LispError("Incorrect number of arguments.");
     }
@@ -408,7 +404,6 @@ ValuePtr procedure(const std::vector<ValuePtr>& params, EvalEnv&){
     return std::make_shared<BooleanValue>(params[0]->getType() == ValueType::BUILTIN_PROC || params[0]->getType() == ValueType::LAMBDA);
 }
 
-//TODO：determine before evaluation
 ValuePtr symbol(const std::vector<ValuePtr>& params, EvalEnv&){
     if(params.size() != 1){
         throw LispError("Incorrect number of arguments");

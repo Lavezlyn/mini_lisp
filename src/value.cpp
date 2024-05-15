@@ -1,10 +1,9 @@
 #include "./value.h"
+#include "./error.h"
+#include "./eval_env.h"
 #include <iomanip>
 #include <string>
 #include <sstream>
-#include "./error.h"
-#include "./eval_env.h"
-#include <iostream>
 
 class EvalEnv;
 
@@ -94,7 +93,7 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args){
     if(args.size() != params.size()){
         throw LispError("Incorrect number of arguments");
     }
-    child = parent->createChild(getParams(), args);
+    auto child = parent->createChild(getParams(), args);
     ValuePtr result = nullptr;
     for(const auto& expr : body){
         result = child->eval(expr);

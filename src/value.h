@@ -32,33 +32,22 @@ protected:
 public:
     virtual ~Value() = default;
 
+    virtual bool isInteger() const = 0;
+    virtual std::string toString() const = 0;
     ValueType getType() const {
         return type;
     }
-
-    bool isBoolean() const {
-        return type == ValueType::BOOLEAN;
-    }
-    virtual bool isInteger() const = 0;
-    bool isNil() const {
-        return type == ValueType::NIL;
-    }
-    bool isNumber() const {
-        return type == ValueType::NUMERIC;
-    }
+    bool isBoolean() const {return type == ValueType::BOOLEAN;}
+    bool isNil() const {return type == ValueType::NIL;}
+    bool isNumber() const {return type == ValueType::NUMERIC;}
     bool isSelfEvaluating() const {
         return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::BUILTIN_PROC || type == ValueType::LAMBDA;
     }
     bool isAtom() const {
         return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::SYMBOL || type == ValueType::NIL;
     }
-
-    virtual std::optional<std::string> asSymbol() const {
-        return std::nullopt;
-    };
-    
+    virtual std::optional<std::string> asSymbol() const {return std::nullopt;};
     virtual std::vector<ValuePtr> toVector() const {return {};};
-    virtual std::string toString() const = 0;
 };
 
 class BooleanValue : public Value {
@@ -67,9 +56,7 @@ private:
 public:
     BooleanValue(bool value) : Value(ValueType::BOOLEAN), value{value} {}
 
-    bool getValue() const {
-        return value;
-    }
+    bool getValue() const {return value;}
     bool isInteger() const override { return false; }
     std::string toString() const override;
 };
@@ -80,12 +67,8 @@ private:
 public:
     NumericValue(double value) : Value(ValueType::NUMERIC), value{value} {}
 
-    double asNumber() const {
-        return value;
-    }
-    bool isInteger() const override { 
-        return value == static_cast<int>(value);
-     }
+    double asNumber() const {return value;}
+    bool isInteger() const override {return value == static_cast<int>(value);}
     std::string toString() const override;
 };
 
@@ -96,9 +79,7 @@ public:
     StringValue(std::string value) : Value(ValueType::STRING), value{value} {}
 
     bool isInteger() const override { return false; }
-    std::string getValue() const {
-        return value;
-    }
+    std::string getValue() const {return value;}
     std::string toString() const override;
 };
 
@@ -129,15 +110,8 @@ public:
     PairValue(ValuePtr car, ValuePtr cdr) : Value(ValueType::PAIR), car{car}, cdr{cdr} {}
 
     bool isInteger() const override { return false; }
-    ValuePtr getCar() const {
-        return car;
-    }
-    ValuePtr getCdr() const {
-        return cdr;
-    }
-    void setCdr(ValuePtr cdr) {
-        this->cdr = cdr;
-    }
+    ValuePtr getCar() const {return car;}
+    ValuePtr getCdr() const {return cdr;}
     std::string toString() const override;
     std::vector<ValuePtr> toVector() const override;
 };
@@ -150,9 +124,7 @@ public:
     
     bool isInteger() const override { return false; }
     std::string toString() const override;
-    auto getFunc() const {
-        return func;
-    }
+    auto getFunc() const {return func;}
 };
     
 class LambdaValue : public Value {
@@ -160,13 +132,11 @@ private:
     std::vector<ValuePtr> params;
     std::vector<ValuePtr> body;
     std::shared_ptr<EvalEnv> parent;
-    std::shared_ptr<EvalEnv> child;
 public:
-    LambdaValue(std::vector<ValuePtr> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> env) : Value(ValueType::LAMBDA), params{params}, body{body}, parent{env}, child{nullptr} {}
+    LambdaValue(std::vector<ValuePtr> params, std::vector<ValuePtr> body, std::shared_ptr<EvalEnv> parent) : Value(ValueType::LAMBDA), params{params}, body{body}, parent{parent} {}
     bool isInteger() const override { return false; }
     std::string toString() const override;
     ValuePtr apply(const std::vector<ValuePtr>& args);
-    std::shared_ptr<EvalEnv> getEnv() { return parent; }
     std::vector<std::string> getParams() const;
 };
 

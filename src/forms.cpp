@@ -50,16 +50,24 @@ ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
 }
 
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
-    if (args.size() != 3) {
+    if (args.size() != 3 && args.size() != 2) {
         throw LispError("Incorrest number of arguments");
     }
     auto cond = e.eval(args[0]);
-    if (cond->isBoolean()){
-        if(!static_cast<BooleanValue*>(cond.get())->getValue()){
-            return e.eval(args[2]);
+    if(args.size() == 3){
+        if (cond->isBoolean()){
+            if(!static_cast<BooleanValue*>(cond.get())->getValue())
+                return e.eval(args[2]);
         }
+        return e.eval(args[1]);
     }
-    return e.eval(args[1]);
+    else {
+        if (cond->isBoolean()){
+            if(static_cast<BooleanValue*>(cond.get())->getValue())
+                return e.eval(args[1]);
+        }
+        else return std::make_shared<NilValue>();
+    }
 }
 
 ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& e){
@@ -152,7 +160,7 @@ ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 }
 
 ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& e){
-    //FixMe
+    //FixMe:implement recursive quasiquote and unquote
     if(args.size() != 1)
         throw LispError("Incorrect number of arguments for 'quasiquote'");
     if(args[0]->getType() != ValueType::PAIR)

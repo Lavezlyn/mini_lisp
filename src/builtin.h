@@ -9,7 +9,7 @@ ValuePtr add(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr sub(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr mul(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr divide(const std::vector<ValuePtr>& args, EvalEnv& env);
-ValuePtr print(const std::vector<ValuePtr>& args, EvalEnv& env);
+ValuePtr printer(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr ABS(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr expt(const std::vector<ValuePtr>& args, EvalEnv& env); 
 ValuePtr modulo(const std::vector<ValuePtr>& args, EvalEnv& env);

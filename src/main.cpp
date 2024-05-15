@@ -17,6 +17,7 @@ struct TestCtx {
 };
 
 int main() {
+    RJSJ_TEST(TestCtx, Sicp);
     std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
     while (true) {
         try {
@@ -37,6 +38,5 @@ int main() {
     }
 }
 
-//FixMe:(define (count-leaves x) (cond ((null? x) 0) ((not (pair? x)) 1) (else (+ (count-leaves (car x)) (count-leaves (cdr x)))))) => () ok
-// (define x (cons (list 1 2) (list 3 4))) => () ok
-// (count-leaves x)
+//(let ((x 2)) ((begin (if #t #f) +) 3 (begin x))) bad [expected 5.000000]
+//Exception thrown: Incorrest number of arguments
