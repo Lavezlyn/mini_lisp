@@ -46,16 +46,19 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
     if (expr->isSelfEvaluating()){
         return expr;
     }
-    if (auto symbol = expr->asSymbol()){
+    else if (auto symbol = expr->asSymbol()){
         if (auto value = lookupBinding(*symbol))
-            return eval(value);
+            return value;
         else
             throw LispError("Variable " + *symbol + " not defined.");
     }
-    if (expr->getType() == ValueType::PAIR){
+    else if (expr->getType() == ValueType::PAIR){
         auto islist = list({expr}, *this);
         if(!static_cast<BooleanValue*>(islist.get())->getValue()){
-            return expr;
+            auto pair = static_cast<PairValue*>(expr.get());
+            auto car = eval(pair->getCar());
+            auto cdr = eval(pair->getCdr());
+            return std::make_shared<PairValue>(car, cdr);
         }
         else{
             auto Pair = static_cast<PairValue*>(expr.get());
@@ -66,15 +69,16 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
         else
         {
             ValuePtr operands = Pair->getCdr();
-            std::vector<ValuePtr> args = evalList(operands);
             auto proc = this->eval(Pair->getCar());
-            if(proc->getType()==ValueType::BUILTIN_PROC || proc->getType()==ValueType::LAMBDA)
+            if(proc->getType()==ValueType::BUILTIN_PROC || proc->getType()==ValueType::LAMBDA){
+                std::vector<ValuePtr> args = evalList(operands);
                 return this->apply(proc, args);
+            }
             else return expr;
         }
         }
     }
-    if (expr->isNil()){
+    else if (expr->isNil()){
         throw LispError("Cannot evaluate nil");
     }
     else {
@@ -99,4 +103,5 @@ ValuePtr EvalEnv::apply(ValuePtr proc, std::vector<ValuePtr> args) {
         auto lambda = static_cast<LambdaValue*>(proc.get());
         return lambda->apply(args);
     } 
+    else throw LispError("Invalid procedure type");
 }

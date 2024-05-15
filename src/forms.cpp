@@ -107,21 +107,15 @@ ValuePtr condForm(const std::vector<ValuePtr>& args, EvalEnv& e){
         std::vector<ValuePtr> PairVec = Pair->toVector();
         if (PairVec.size() == 1){return e.eval(PairVec[0]);}
         if(PairVec[0]->asSymbol() && *PairVec[0]->asSymbol() == "else"s){
-            if(i == args.size() - 1) {
-                ValuePtr result = nullptr;
-                for (size_t j = 1; j < PairVec.size(); j++)
-                    result = e.eval(PairVec[j]);
-                return result;
-            }
+            if(i == args.size() - 1)
+                return e.eval(PairVec[1]);
             else throw LispError("Else clause not last in cond form");
         }
         auto cond = e.eval(PairVec[0]);
         if (cond->isBoolean() && !static_cast<BooleanValue*>(cond.get())->getValue()) continue;
         else {
             ValuePtr result = nullptr;
-            for (size_t j = 1; j < PairVec.size(); j++)
-                result = e.eval(PairVec[j]);
-            return result;
+            return e.eval(PairVec[1]);  
         }
     } 
     return std::make_shared<NilValue>();

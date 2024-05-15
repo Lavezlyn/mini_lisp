@@ -4,6 +4,7 @@
 #include <sstream>
 #include "./error.h"
 #include "./eval_env.h"
+#include <iostream>
 
 class EvalEnv;
 

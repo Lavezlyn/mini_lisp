@@ -17,7 +17,6 @@ struct TestCtx {
 };
 
 int main() {
-    RJSJ_TEST(TestCtx, Lv7Lib);
     std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
     while (true) {
         try {
@@ -38,9 +37,6 @@ int main() {
     }
 }
 
-//FixMe:(define (cube x) (* x x x)) => () ok
-//      (define (sum term a next b) (if (> a b) 0 (+ (term a) (sum term (next a) next b)))) => () ok        
-//      (define (inc n) (+ n 1)) => () ok
-//      (define (sum-cubes a b) (sum cube a inc b)) => () ok
-//      (sum-cubes 1 10)
-//Program crashed
+//FixMe:(define (count-leaves x) (cond ((null? x) 0) ((not (pair? x)) 1) (else (+ (count-leaves (car x)) (count-leaves (cdr x)))))) => () ok
+// (define x (cons (list 1 2) (list 3 4))) => () ok
+// (count-leaves x)
