@@ -9,9 +9,8 @@
 using namespace std::literals;
 
 EvalEnv::EvalEnv(std::shared_ptr<EvalEnv> parent) : parent{parent} {
-    for(auto& [name, proc] : BUILTIN){
+    for(auto& [name, proc] : BUILTIN)
         env[name] = proc;
-    }
 }
 
 std::shared_ptr<EvalEnv> EvalEnv::createGlobal(){
@@ -20,9 +19,8 @@ std::shared_ptr<EvalEnv> EvalEnv::createGlobal(){
 
 std::shared_ptr<EvalEnv> EvalEnv::createChild(const std::vector<std::string>& params, const std::vector<ValuePtr>& args) {
     auto child = std::shared_ptr<EvalEnv>(new EvalEnv(shared_from_this()));
-    for (size_t i = 0; i < params.size(); i++) {
+    for (size_t i = 0; i < params.size(); i++)
         child->defineBinding(params[i], args[i]);
-    }
     return child;
 }
 
@@ -31,21 +29,17 @@ void EvalEnv::defineBinding(const std::string& name, ValuePtr value){
 }
 
 ValuePtr EvalEnv::lookupBinding(const std::string& name){
-    if(this->env.find(name) == this->env.end() && this->parent){
+    if(this->env.find(name) == this->env.end() && this->parent)
         return this->parent->lookupBinding(name);
-    }
-    else if(this->env.find(name) != this->env.end()){
+    else if(this->env.find(name) != this->env.end())
         return this->env[name];
-    }
-    else{
+    else
         throw LispError("Variable " + name + " not defined.");
-    }
 }
 
 ValuePtr EvalEnv::eval(ValuePtr expr){
-    if (expr->isSelfEvaluating()){
+    if (expr->isSelfEvaluating())
         return expr;
-    }
     else if (auto symbol = expr->asSymbol()){
         if (auto value = lookupBinding(*symbol))
             return value;
@@ -63,19 +57,18 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
         else{
             auto Pair = static_cast<PairValue*>(expr.get());
             auto op = Pair->getCar()->asSymbol();
-        if (op.has_value() && SPECIAL_FORMS.find(*op) != SPECIAL_FORMS.end()){  
-            return SPECIAL_FORMS.at(*op)(Pair->getCdr()->toVector(), *this);   
-        }
-        else
-        {
-            ValuePtr operands = Pair->getCdr();
-            auto proc = this->eval(Pair->getCar());
-            if(proc->getType()==ValueType::BUILTIN_PROC || proc->getType()==ValueType::LAMBDA){
-                std::vector<ValuePtr> args = evalList(operands);
-                return this->apply(proc, args);
+            if (op.has_value() && SPECIAL_FORMS.find(*op) != SPECIAL_FORMS.end())
+                return SPECIAL_FORMS.at(*op)(Pair->getCdr()->toVector(), *this);   
+            else
+            {
+                ValuePtr operands = Pair->getCdr();
+                auto proc = this->eval(Pair->getCar());
+                if(proc->getType()==ValueType::BUILTIN_PROC || proc->getType()==ValueType::LAMBDA){
+                    std::vector<ValuePtr> args = evalList(operands);
+                    return this->apply(proc, args);
+                }
+                else return expr;
             }
-            else return expr;
-        }
         }
     }
     else if (expr->isNil()){
