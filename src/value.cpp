@@ -100,3 +100,19 @@ ValuePtr LambdaValue::apply(const std::vector<ValuePtr>& args){
     }
     return result;
 }
+
+ValuePtr PromiseValue::force(){
+    if(forced){
+        return value;
+    }
+    forced = true;
+    value = env->eval(value);
+    return value;
+}
+
+std::string PromiseValue::toString() const{
+    std::string forcedString;
+    if(forced) forcedString = " (forced)";
+    else forcedString = " (not forced)";
+    return "#<Promise" + forcedString + ">";
+}

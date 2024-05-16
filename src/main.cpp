@@ -38,7 +38,6 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
                 if(mode == "REPL") std::exit(0);
                 else {mode = "FILEend";}
             }
-
             for(char& c : line){
                 if(c == '(') openBrackets++;
                 if(c == ')') openBrackets--;
@@ -54,6 +53,7 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
                 continue;
             }
             else{
+                if(code == "") std::exit(0);    
                 auto tokens = Tokenizer::tokenize(code);
                 code = "";
                 Parser parser(std::move(tokens));

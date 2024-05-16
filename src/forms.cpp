@@ -6,6 +6,7 @@ using namespace std::literals;
 
 const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
     {"define"s, defineForm},
+    {"set!"s, defineForm},
     {"quote"s, quoteForm},
     {"quasiquote"s,quasiquoteForm},
     {"if"s, ifForm},
@@ -13,8 +14,13 @@ const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
     {"or"s, orForm},
     {"lambda"s, lambdaForm},
     {"cond"s, condForm},
+    {"case"s, caseForm},
     {"let"s, letForm},
-    {"begin"s, beginForm}
+    {"let*"s, letStarForm},
+    {"begin"s, beginForm},
+    {"delay"s, delayForm},
+    {"force"s, forceForm},
+    {"do"s, doForm}
 };
 
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
@@ -129,6 +135,38 @@ ValuePtr condForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     return std::make_shared<NilValue>();
 }
 
+ValuePtr caseForm(const std::vector<ValuePtr>& args, EvalEnv& e){
+    if(args.size() < 2) throw LispError("Incorrect number of arguments for 'case'");
+    auto key = e.eval(args[0]);
+    for(size_t i = 1; i < args.size(); i++){
+        if(args[i]->getType() != ValueType::PAIR) throw LispError("Invalid case form, malformed clause");
+        auto Pair = static_cast<PairValue*>(args[i].get());
+        std::vector<ValuePtr> PairVec = Pair->toVector();
+        auto datum = PairVec[0];
+        if(datum->asSymbol() && *datum->asSymbol() == "else"s){
+            if(i == args.size()-1){
+                ValuePtr result = nullptr;
+                for(size_t j = 1; j < PairVec.size(); j++)
+                    result = e.eval(PairVec[j]);
+                return result;
+            }
+            else throw LispError("Else clause not last in case form");
+        }
+        if(datum->getType() != ValueType::PAIR) throw LispError("Invalid case form, malformed clause");
+        auto PairVec2 = static_cast<PairValue*>(datum.get())->toVector();
+        if(PairVec2.size() != 1) throw LispError("Invalid case form, incorrect number of literals");
+        auto literal = PairVec2[0];
+        if(!literal->isAtom()) throw LispError("Invalid case form, datum not a literal");
+        if(static_cast<BooleanValue*>(equal({key, literal}, e).get())->getValue()){
+            ValuePtr result = nullptr;
+            for(size_t j = 1; j < PairVec.size(); j++)
+                result = e.eval(PairVec[j]);
+            return result;
+        }
+    }
+    return std::make_shared<NilValue>();
+}
+
 ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     if (args.size() < 2){
         throw LispError("Incorrect number of arguments");
@@ -148,6 +186,30 @@ ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     }
     std::vector<ValuePtr> body(args.begin() + 1, args.end());
     auto lambda = std::make_shared<LambdaValue>(vars, body, e.shared_from_this());
+    return lambda.get()->apply(vals);   
+}
+
+ValuePtr letStarForm(const std::vector<ValuePtr>& args, EvalEnv& e){
+    if (args.size() < 2){
+        throw LispError("Incorrect number of arguments");
+    }
+    std::vector<ValuePtr> vars;    
+    std::vector<ValuePtr> vals;
+    std::vector<ValuePtr> definitions = args[0]->toVector();    
+    auto child = e.shared_from_this();
+    for (const auto& i: definitions){
+        if(i->getType() != ValueType::PAIR){
+            throw LispError("Invalid definition");
+        }
+        auto Pair = static_cast<PairValue*>(i.get());
+        std::vector<ValuePtr> def = Pair->toVector();   
+        if(def.size() != 2) throw LispError("Invalid definition");
+        vars.push_back(def[0]);
+        vals.push_back(child->eval(def[1]));
+        child = child->createChild({*def[0]->asSymbol()}, {vals.back()});
+    }
+    std::vector<ValuePtr> body(args.begin() + 1, args.end());
+    auto lambda = std::make_shared<LambdaValue>(vars, body, child);
     return lambda.get()->apply(vals);   
 }
 
@@ -181,4 +243,58 @@ ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& e){
         else newArgs.push_back(arg);
     }
     return makelist(newArgs, e);
+}
+
+ValuePtr delayForm(const std::vector<ValuePtr>& args, EvalEnv& e){
+    if(args.size() != 1)
+        throw LispError("Incorrect number of arguments for 'delay'");
+    return make_shared<PromiseValue>(args[0], e.shared_from_this());
+}
+
+ValuePtr forceForm(const std::vector<ValuePtr>& args, EvalEnv& e){
+    if(args.size() != 1)
+        throw LispError("Incorrect number of arguments for 'force'");
+    auto val = e.eval(args[0]);
+    if(val->getType() != ValueType::PROMISE)
+        throw LispError("Invalid argument for 'force'");
+    return static_cast<PromiseValue*>(val.get())->force();
+}
+
+ValuePtr doForm(const std::vector<ValuePtr>& args, EvalEnv& e){
+    if(args.size() < 2)
+        throw LispError("Incorrect number of arguments for 'do'");
+    auto varList = static_cast<PairValue*>(args[0].get())->toVector();
+    std::vector<std::string> names; std::vector<ValuePtr> inits; std::vector<ValuePtr> steps;
+    for(const auto& i: varList){
+        if(i->getType() != ValueType::PAIR)
+            throw LispError("Invalid variable list");
+        auto wholeVar = static_cast<PairValue*>(i.get())->toVector();
+        if(wholeVar.size() != 3)
+            throw LispError("Invalid variable list");
+        if(wholeVar[0]->getType() != ValueType::SYMBOL)
+            throw LispError("Invalid variable name");
+        names.push_back(*wholeVar[0]->asSymbol());
+        inits.push_back(wholeVar[1]);
+        steps.push_back(wholeVar[2]);
+    }
+    if(args[1]->getType() != ValueType::PAIR)
+        throw LispError("Invalid test clause in do form");
+    auto test = static_cast<PairValue*>(args[1].get())->toVector();
+    auto body = std::vector<ValuePtr>(args.begin() + 2, args.end());
+    auto child = e.createChild(names, inits);
+    while(true){
+        auto testResult = child->eval(test[0]);
+        if(testResult->getType() != ValueType::BOOLEAN)
+            throw LispError("Invalid test in do form");
+        if(static_cast<BooleanValue*>(testResult.get())->getValue()){
+            ValuePtr result = std::make_shared<NilValue>();
+            for(size_t i = 1; i < test.size(); i++)
+                result = child->eval(test[i]);
+            return result;
+        }
+        for(const auto& i: body)
+            child->eval(i);
+        for(size_t i = 0; i < names.size(); i++)
+            child->defineBinding(names[i], child->eval(steps[i]));  
+    }
 }

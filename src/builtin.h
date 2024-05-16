@@ -45,6 +45,9 @@ ValuePtr makelist(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr map(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr filter(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr reduce(const std::vector<ValuePtr>& args, EvalEnv& env);
+ValuePtr setCar(const std::vector<ValuePtr>& args, EvalEnv& env);
+ValuePtr setCdr(const std::vector<ValuePtr>& args, EvalEnv& env);
+ValuePtr promise(const std::vector<ValuePtr>& args, EvalEnv& env);
 
 extern std::unordered_map<std::string, ValuePtr> BUILTIN;
 

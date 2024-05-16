@@ -17,7 +17,9 @@ enum class ValueType{
     NIL,
     PAIR,
     BUILTIN_PROC,
-    LAMBDA
+    LAMBDA,
+    PROMISE,
+    MACRO
 };
 
 class Value;
@@ -41,7 +43,7 @@ public:
     bool isNil() const {return type == ValueType::NIL;}
     bool isNumber() const {return type == ValueType::NUMERIC;}
     bool isSelfEvaluating() const {
-        return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::BUILTIN_PROC || type == ValueType::LAMBDA;
+        return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::BUILTIN_PROC || type == ValueType::LAMBDA || type == ValueType::PROMISE;
     }
     bool isAtom() const {
         return type == ValueType::BOOLEAN || type == ValueType::NUMERIC || type == ValueType::STRING || type == ValueType::SYMBOL || type == ValueType::NIL;
@@ -112,6 +114,8 @@ public:
     bool isInteger() const override { return false; }
     ValuePtr getCar() const {return car;}
     ValuePtr getCdr() const {return cdr;}
+    void setCar(ValuePtr value) {car = value;}
+    void setCdr(ValuePtr value) {cdr = value;}
     std::string toString() const override;
     std::vector<ValuePtr> toVector() const override;
 };
@@ -138,6 +142,19 @@ public:
     std::string toString() const override;
     ValuePtr apply(const std::vector<ValuePtr>& args);
     std::vector<std::string> getParams() const;
+};
+
+class PromiseValue : public Value {
+private:
+    ValuePtr value;
+    bool forced;
+    std::shared_ptr<EvalEnv> env;
+public:
+    PromiseValue(ValuePtr value, std::shared_ptr<EvalEnv> env) : Value(ValueType::PROMISE), value{value}, forced{false}, env{env} {}
+
+    bool isInteger() const override { return false; }
+    std::string toString() const override;
+    ValuePtr force();
 };
 
 #endif

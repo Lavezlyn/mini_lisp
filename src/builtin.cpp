@@ -604,6 +604,35 @@ ValuePtr reduce(const std::vector<ValuePtr>& params, EvalEnv& e){
     }
 }
 
+ValuePtr setCdr(const std::vector<ValuePtr>& params, EvalEnv&){
+    if(params.size() != 2){
+        throw LispError("Incorrect number of arguments");
+    }
+    if(params[0]->getType() != ValueType::PAIR){
+        throw LispError("Not a pair");
+    }
+    static_cast<PairValue*>(params[0].get())->setCdr(params[1]);
+    return std::make_shared<NilValue>();
+}
+
+ValuePtr setCar(const std::vector<ValuePtr>& params, EvalEnv&){
+    if(params.size() != 2){
+        throw LispError("Incorrect number of arguments");
+    }
+    if(params[0]->getType() != ValueType::PAIR){
+        throw LispError("Not a pair");
+    }
+    static_cast<PairValue*>(params[0].get())->setCar(params[1]);
+    return std::make_shared<NilValue>();
+}
+
+ValuePtr promise(const std::vector<ValuePtr>& params, EvalEnv& e){
+    if(params.size() != 1){
+        throw LispError("Incorrect number of arguments");
+    }
+    return std::make_shared<BooleanValue>(params[0]->getType() == ValueType::PROMISE);
+}
+
 extern std::unordered_map<std::string, ValuePtr> BUILTIN{
     {"apply", std::make_shared<BuiltinProcValue>(apply)},
     {"display", std::make_shared<BuiltinProcValue>(display)},
@@ -651,7 +680,10 @@ extern std::unordered_map<std::string, ValuePtr> BUILTIN{
     {"list", std::make_shared<BuiltinProcValue>(makelist)},
     {"map", std::make_shared<BuiltinProcValue>(map)},
     {"filter", std::make_shared<BuiltinProcValue>(filter)},
-    {"reduce", std::make_shared<BuiltinProcValue>(reduce)}
+    {"reduce", std::make_shared<BuiltinProcValue>(reduce)},
+    {"set-cdr!", std::make_shared<BuiltinProcValue>(setCdr)},
+    {"set-car!", std::make_shared<BuiltinProcValue>(setCar)},
+    {"promise?", std::make_shared<BuiltinProcValue>(promise)}
 };
 
 
