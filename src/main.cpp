@@ -26,8 +26,8 @@ int main(int argc, char* argv[]) {
 }
 
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env){
-    int openBrackets = 0;
     std::string code;
+    int openBrackets = 0;
     while(true){
         try{
             if(mode == "REPL")
