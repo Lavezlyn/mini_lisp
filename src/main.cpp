@@ -30,7 +30,7 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
     std::string code;
     while(true){
         try{
-            if(mode == "REPL" && openBrackets == 0)
+            if(mode == "REPL")
                 std::cout << ">>> ";
             std::string line;
             std::getline(input, line);
@@ -38,31 +38,12 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
                 if(mode == "REPL") std::exit(0);
                 else {mode = "FILEend";}
             }
-
-            for(char& c : line){
-                if(c == '(') openBrackets++;
-                if(c == ')') openBrackets--;
-            }
-            code += line;
-
-            if(openBrackets > 0){
-                if(mode=="REPL") std::cout << "... ";
-                else if(mode=="FILEend"){
-                    std::cerr << "Error: Unexpected EOF" << std::endl;
-                    std::exit(1);
-                }
-                continue;
-            }
-            else{
-                auto tokens = Tokenizer::tokenize(code);
-                code = "";
-                Parser parser(std::move(tokens));
-                auto value = parser.parse();
-                auto result = env->eval(std::move(value));
-                if(mode == "REPL")
-                    std::cout << result->toString() << std::endl;
-            }
-
+            auto tokens = Tokenizer::tokenize(line);
+            Parser parser(std::move(tokens));
+            auto value = parser.parse();
+            auto result = env->eval(std::move(value));
+            if(mode == "REPL")
+                std::cout << result->toString() << std::endl;
             if(mode == "FILEend") std::exit(0);
         } catch (std::runtime_error& e){
             std::cerr << "Error: " << e.what() << std::endl;
