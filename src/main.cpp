@@ -54,6 +54,7 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
                 continue;
             }
             else{
+                if(code == "") std::exit(0);
                 auto tokens = Tokenizer::tokenize(code);
                 code = "";
                 Parser parser(std::move(tokens));
