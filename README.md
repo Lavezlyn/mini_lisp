@@ -10,6 +10,20 @@
 ...   (+ x y))  
 8
 ```
+也可以用**let\***实现快速排序。在这里，less和greater的定义都用到了先前定义的pivot和rest。
+```
+>>> (define (quicksort lst)
+... (if (null? lst)
+...     '()
+...     (let* ((pivot (car lst))
+...            (rest (cdr lst))
+...            (less (filter (lambda (x) (< x pivot)) rest))
+...            (greater (filter (lambda (x) (>= x pivot)) rest)))
+...       (append (quicksort less) (list pivot) (quicksort greater)))))
+()
+>>> (quicksort '(12 71 2 15 29 82 87 8 18 66 81 25 63 97 40 3 93 58 53 31 47))
+(2 3 8 12 15 18 25 29 31 40 47 53 58 63 66 71 81 82 87 93 97)
+```
 ### (2) **delay**与**force**
 #### 介绍
 **delay** 和 **force** 是用于实现惰性求值的两个特殊形式。delay 用于创建一个被延迟的表达式，也就是说，这个表达式在被创建时不会立即求值。**force** 用于求值一个被 **delay** 创建的被延迟的表达式。
@@ -24,7 +38,7 @@
 >>> delayed-sum
 #<Promise (forced)>
 ```
-用delay和force创建一个无限的自然数列表
+用**delay**和**force**创建一个无限的自然数列表
 ```
 >>> (define (naturals n)
 ...   (cons n (delay (naturals (+ n 1)))))
@@ -60,7 +74,33 @@
 >>> (sum-naturals 10)
 55
 ```
-### (4) **set!**
+### (4) **case**
+#### 介绍
+**case**特殊形式是一个条件结构，它允许你根据一个表达式的值来选择执行的分支，**case**的语法如下：
+```
+(case key
+  ((datum1 ...) expression1 ...)
+  ((datum2 ...) expression2 ...)
+  ...
+  (else default-expression ...))
+```
+**key**是一个表达式，它的值将被用来选择要执行的分支。每个**datum**是一个字面量（也即**atom?**判定为真的值），它们在每个分支的开头被列出。如果**key**的值等于某个**datum**，那么对应的**expression**就会被执行，它求值的结果将作为**case**形式的返回值。默认分支用**else**关键字声明，如果**key**的值没有匹配任何**datum**，那么**default-expression**就会被执行。注意，默认分支的存在不是必须的，如果没有一个分支被匹配，**case**形式什么也不做，返回空表。
+#### 用法
+```
+>>> (define (describe x)
+...   (case x
+...     ((1) "one")
+...     ((2) "two")
+...     (else "other")))
+()
+>>> (describe 1)  
+"one"
+>>> (describe 2)
+"two"
+>>> (describe 10) 
+"other"
+```
+### (5) **set!**
 **set!** 是一个用于重设变量的值的特殊形式。**set!** 的语法如下：
 ```
 >>> (define x 2)
