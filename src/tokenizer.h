@@ -12,7 +12,7 @@ private:
     std::deque<TokenPtr> tokenize();
 
     std::string input;
-    Tokenizer(const std::string& input) : input{input} {}
+    Tokenizer(const std::string& input): input(input) {}
 
 public:
     static std::deque<TokenPtr> tokenize(const std::string& input);

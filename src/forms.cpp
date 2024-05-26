@@ -25,9 +25,8 @@ const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
 
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
     if (auto name = args[0]->asSymbol()) {
-        if (args[1]->getType() == ValueType::SYMBOL){
+        if (args[1]->getType() == ValueType::SYMBOL)
             e.defineBinding(*name, args[1]);
-        }
         e.defineBinding(*name, e.eval(args[1]));
         return std::make_shared<NilValue>();
     } 
@@ -37,28 +36,23 @@ ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
         if(!name){throw LispError("Invalid procedure name");}
         auto params = Pair->getCdr()->toVector();
         std::vector<ValuePtr> body;
-        for (size_t i = 1; i < args.size(); i++){
+        for (size_t i = 1; i < args.size(); i++)
             body.push_back(args[i]);
-        }
         e.defineBinding(*name, make_shared<LambdaValue>(params, body, e.shared_from_this()));
         return std::make_shared<NilValue>();
     }
-    else {
-        throw LispError("Malformed define form");
-    }
+    else throw LispError("Malformed define form");
 }
 
 ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
-    if (args.size() != 1) {
+    if (args.size() != 1) 
         throw LispError("Incorrect number of arguments");
-    }
     return args[0];
 }
 
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
-    if (args.size() != 3 && args.size() != 2) {
+    if (args.size() != 3 && args.size() != 2)
         throw LispError("Incorrest number of arguments");
-    }
     auto cond = e.eval(args[0]);
     if(args.size() == 3){
         if (cond->isBoolean()){
@@ -77,9 +71,8 @@ ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
 }
 
 ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& e){
-    if (args.size() == 0){
+    if (args.size() == 0)
         return std::make_shared<BooleanValue>(true); 
-    }
     for (const auto& i: args){
         if (auto val = e.eval(i); val->isBoolean()){
             if (!static_cast<BooleanValue*>(val.get())->getValue()){
@@ -91,15 +84,12 @@ ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 }
 
 ValuePtr orForm(const std::vector<ValuePtr>& args, EvalEnv& e){
-    if (args.size() == 0){
+    if (args.size() == 0)
         return std::make_shared<BooleanValue>(false); 
-    }
     for (const auto& i: args){
         auto val = e.eval(i);
         if (val->isBoolean()){
-            if (!static_cast<BooleanValue*>(val.get())->getValue()){
-                continue;
-            }
+            if (!static_cast<BooleanValue*>(val.get())->getValue()) continue;
         }
         return val;
     }
@@ -109,9 +99,8 @@ ValuePtr orForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 ValuePtr lambdaForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     auto params = args[0]->toVector();
     std::vector<ValuePtr> body;
-    for (size_t i = 1; i < args.size(); i++){
+    for (size_t i = 1; i < args.size(); i++)
         body.push_back(args[i]);
-    }
     return make_shared<LambdaValue>(params, body, e.shared_from_this());
 }
 
