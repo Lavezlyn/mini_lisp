@@ -35,7 +35,6 @@ ValuePtr display(const std::vector<ValuePtr>& params, EvalEnv&){
         if(i->getType() == ValueType::STRING)
             std::cout << static_cast<StringValue*>(i.get())->getValue();
         else std::cout << i->toString();
-        std::cout << " ";
     }
     return std::make_shared<NilValue>();
 }
@@ -76,8 +75,8 @@ ValuePtr Exit(const std::vector<ValuePtr>& params, EvalEnv&){
     if (params.size() == 0)
         exit(0);
     else if (params.size() == 1){
-        if(!params[0]->isNumber())
-            throw LispError("Cannot exit with a non-numeric value.");
+        if(!params[0]->isInteger())
+            throw LispError("Cannot exit with a non-integer value.");
         exit(static_cast<NumericValue*>(params[0].get())->asNumber());
     }
     else throw LispError("Incorrect number of arguments: #[exit]");
