@@ -274,7 +274,7 @@ ValuePtr doForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     while(true){
         auto testResult = child->eval(test[0]);
         if(testResult->getType() != ValueType::BOOLEAN)
-            throw LispError("Invalid test in do form");
+            throw LispError("Invalid test clause in do form");
         if(static_cast<BooleanValue*>(testResult.get())->getValue()){
             ValuePtr result = std::make_shared<NilValue>();
             for(size_t i = 1; i < test.size(); i++)

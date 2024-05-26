@@ -30,7 +30,7 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
     int openBrackets = 0;
     while(true){
         try{
-            if(mode == "REPL")
+            if(mode == "REPL" && openBrackets == 0)
                 std::cout << ">>> ";
             std::string line;
             std::getline(input, line);
