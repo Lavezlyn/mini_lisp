@@ -10,7 +10,7 @@
 ...   (+ x y))  
 8
 ```
-也可以用**let\***实现快速排序。在这里，less和greater的定义都用到了先前定义的pivot和rest。
+也可以用let*实现快速排序。在这里，less和greater的定义都用到了先前定义的pivot和rest。
 ```
 >>> (define (quicksort lst)
 ... (if (null? lst)
