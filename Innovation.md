@@ -72,4 +72,4 @@ ValuePtr letStarForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 然后，我们在**delayForm**函数里返回一个**PromiseValue**类对象，在**forceForm**函数里调用传入函数的**PromiseValue**类对象的**force()**方法。这就完成了**delay**和**force**的语法。
 ### 其他特殊形式
 **case**与**do**特殊形式的实现虽然过程比较繁琐，但逻辑上十分简单，只需按照规约解析传入的**PairValue**类对象，把它拆解为特殊形式所需的部分，再依次对应逻辑即可。
-在已有**define**特殊形式的前提下，**set\!**特殊形式的实现是平凡的。
+在已有**define**特殊形式的前提下，set\!特殊形式的实现是平凡的。
