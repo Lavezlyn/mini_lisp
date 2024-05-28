@@ -1,9 +1,8 @@
 #ifndef BUILTIN_H
 #define BUILTIN_H
 
-#include "./value.h"
 #include "./eval_env.h"
-#include <unordered_map>    
+#include "./error.h"
 
 ValuePtr add(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr sub(const std::vector<ValuePtr>& args, EvalEnv& env);
