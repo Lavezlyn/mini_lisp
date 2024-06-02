@@ -18,8 +18,7 @@ enum class ValueType{
     PAIR,
     BUILTIN_PROC,
     LAMBDA,
-    PROMISE,
-    MACRO
+    PROMISE
 };
 
 class Value;

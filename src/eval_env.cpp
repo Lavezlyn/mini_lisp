@@ -49,10 +49,8 @@ ValuePtr EvalEnv::eval(ValuePtr expr){
     else if (expr->getType() == ValueType::PAIR){
         auto islist = list({expr}, *this);
         if(!static_cast<BooleanValue*>(islist.get())->getValue()){
-            auto pair = static_cast<PairValue*>(expr.get());
-            auto car = eval(pair->getCar());
-            auto cdr = eval(pair->getCdr());
-            return std::make_shared<PairValue>(car, cdr);
+            std::string msg = "Malformed list: " + expr->toString();
+            throw LispError("Malformed list");
         }
         else{
             auto Pair = static_cast<PairValue*>(expr.get());

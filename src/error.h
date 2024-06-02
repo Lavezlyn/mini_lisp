@@ -18,4 +18,10 @@ public:
     using runtime_error::runtime_error;
 };
 
+class ArgumentError : public LispError {
+public:
+    using LispError::LispError;
+    ArgumentError() : LispError("Incorrect number of arguments") {}
+};
+
 #endif

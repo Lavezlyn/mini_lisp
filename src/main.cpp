@@ -5,65 +5,81 @@
 #include "./tokenizer.h"
 #include "./parser.h"
 #include "./eval_env.h"
+#include "./error.h"
+#include "./rjsj_test.hpp"
+
+struct TestCtx {
+    std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
+    std::string eval(std::string input) {
+        auto tokens = Tokenizer::tokenize(input);
+        Parser parser(std::move(tokens));
+        auto value = parser.parse();
+        auto result = env->eval(std::move(value));
+        return result->toString();
+    }
+};
 
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env);
 std::istringstream readFromFile(const std::string& filename);
-
-int main(int argc, char* argv[]) {
-    std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
-    if(argc == 1) runInterpreter("REPL", std::cin, env);
-    else if(argc == 2){
-        std::istringstream input = readFromFile(argv[1]);
-        runInterpreter("FILE", input, env);
-    } else {
-        std::cerr << "Usage: " << argv[0] << " (optional)<filename>" << std::endl;
-        std::exit(1);
+int main(int argc, char* argv[]){
+    // RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv6, Lv7, Lv7Lib, Sicp);
+    auto env = EvalEnv::createGlobal();
+    if (argc == 2){
+        std::istringstream file = readFromFile(argv[1]);
+        runInterpreter("FILE", file, env);
     }
+    else if (argc == 1)
+        runInterpreter("REPL", std::cin, env);
+    else
+        std::cout << "Usage: ./mini_lisp [filename]" << std::endl;
+    return 0;
 }
 
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env){
-    std::string code;
-    int openBrackets = 0;
-    while(true){
+    std::string inputBuffer;
+    int openBrackets = 0;   
+    bool isFirstLine = true;
+
+    while (true){
         try{
-            if(mode == "REPL" && openBrackets == 0)
-                std::cout << ">>> ";
-            std::string line;
-            std::getline(input, line);
-            if(input.eof()){
-                if(mode == "REPL") std::exit(0);
-                else {mode = "FILEend";}
-            }
-
-            for(char& c : line){
-                if(c == '(') openBrackets++;
-                if(c == ')') openBrackets--;
-            }
-            code += line;
-
-            if(openBrackets > 0){
-                if(mode=="REPL") std::cout << "... ";
-                else if(mode=="FILEend"){
-                    std::cerr << "Error: Unexpected EOF" << std::endl;
-                    std::exit(1);
+            if (mode == "REPL"){
+                if (isFirstLine){
+                    std::cout << ">>> ";
+                    isFirstLine = false;
                 }
-                continue;
+                else std::cout << "... ";
             }
-            else{
-                if(code == "") continue;
-                if(mode == "FILE" && code == "EndOfFile") std::exit(0);
-                std::string codeCopy = code;
-                code = "";
-                auto tokens = Tokenizer::tokenize(codeCopy);
+
+            std::string line;
+            if (!std::getline(input, line)){
+                if(input.eof() && openBrackets == 0)
+                    break;
+                else
+                    throw SyntaxError("Unbalanced parentheses");
+            }
+
+            inputBuffer += line + "\n";
+
+            auto tokens = Tokenizer::tokenize(line);
+            for (const auto& token : tokens){
+                if (token->getType() == TokenType::LEFT_PAREN)
+                    openBrackets++;
+                else if (token->getType() == TokenType::RIGHT_PAREN)
+                    openBrackets--;
+            }
+
+            if (openBrackets == 0){
+                std::string inputCopy = inputBuffer;
+                inputBuffer = "";
+                isFirstLine = true;
+                auto tokens = Tokenizer::tokenize(inputCopy);
                 Parser parser(std::move(tokens));
                 auto value = parser.parse();
-                auto result = env->eval(std::move(value));
-                if(mode == "REPL")
+                auto result = env->eval(std::move(value));  
+                if (mode == "REPL")
                     std::cout << result->toString() << std::endl;
             }
-
-            if(mode == "FILEend") std::exit(0);
-        } catch (std::runtime_error& e){
+        }catch(std::runtime_error& e){
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
@@ -81,6 +97,5 @@ std::istringstream readFromFile(const std::string& filename){
         if(line == "") continue;
         content += line + "\n";
     }
-    content += "EndOfFile\n";
     return std::istringstream(content);
 }

@@ -5,7 +5,7 @@
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env){
     while(true){
         if(mode == "REPL"){
-            std::cout << ">>> ";
+            //display prompts
         }
         //Read
         std::string line;
@@ -26,29 +26,24 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
 我们维护一个**int**类型的变量**openBrackets**，用于计数未匹配括号的个数，以此判断用户的输入是否结束。如果**openBrackets**的值大于0，那么说明还有未匹配的括号，代码应该继续读取下一行。如果**openBrackets**的值小于等于0，可以开始解析和执行这个代码块。注意，这里我们将右括号多余的情况留待解析时再抛出异常，无需在**runInterpreter**中做额外处理。
 ```
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env){
-    std::string code;
+    std::string inputBuffer;
     int openBrackets = 0;
     while(true){
         ......
         std::string line;
         std::getline(input, line);
         ......
-        for(char& c : line){
-            if(c == '(') openBrackets++;
-            if(c == ')') openBrackets--;
-        }
-        code += line;
+        inputBuffer += line + "\n";
         ......
-        if(openBrackets > 0){
-            if(mode=="REPL") std::cout << "... ";
-            continue;
-        }
-        else{
-            //Start RE(P)
-            ......
-            //End RE(P)
-            code = "";     
-            openBrackets = 0; 
+        auto tokens = Tokenizer::tokenize(line);
+            for (const auto& token : tokens){
+                if (token->getType() == TokenType::LEFT_PAREN)
+                    openBrackets++;
+                else if (token->getType() == TokenType::RIGHT_PAREN)
+                    openBrackets--;
+            }
+        if(openBrackets == 0){
+            //Start parsing, evaluating, printing(If in REPL mode)
         }
         ......
     }

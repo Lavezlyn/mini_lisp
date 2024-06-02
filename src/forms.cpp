@@ -24,6 +24,7 @@ const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
 };
 
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
+    if (args.size() != 2) throw ArgumentError();
     if (auto name = args[0]->asSymbol()) {
         if (args[1]->getType() == ValueType::SYMBOL)
             e.defineBinding(*name, args[1]);
@@ -46,13 +47,13 @@ ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
 
 ValuePtr quoteForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
     if (args.size() != 1) 
-        throw LispError("Incorrect number of arguments");
+        throw ArgumentError();
     return args[0];
 }
 
 ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
     if (args.size() != 3 && args.size() != 2)
-        throw LispError("Incorrest number of arguments");
+        throw ArgumentError();
     auto cond = e.eval(args[0]);
     if(args.size() == 3){
         if (cond->isBoolean()){
@@ -68,6 +69,7 @@ ValuePtr ifForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
         }
         else return std::make_shared<NilValue>();
     }
+    return std::make_shared<NilValue>();
 }
 
 ValuePtr andForm(const std::vector<ValuePtr>& args, EvalEnv& e){
@@ -125,7 +127,7 @@ ValuePtr condForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 }
 
 ValuePtr caseForm(const std::vector<ValuePtr>& args, EvalEnv& e){
-    if(args.size() < 2) throw LispError("Incorrect number of arguments for 'case'");
+    if(args.size() < 2) throw ArgumentError();
     auto key = e.eval(args[0]);
     for(size_t i = 1; i < args.size(); i++){
         if(args[i]->getType() != ValueType::PAIR) throw LispError("Invalid case form, malformed clause");
@@ -158,7 +160,7 @@ ValuePtr caseForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 
 ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     if (args.size() < 2){
-        throw LispError("Incorrect number of arguments");
+        throw ArgumentError();
     }
     std::vector<ValuePtr> vars;    
     std::vector<ValuePtr> vals;
@@ -180,7 +182,7 @@ ValuePtr letForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 
 ValuePtr letStarForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     if (args.size() < 2){
-        throw LispError("Incorrect number of arguments");
+        throw ArgumentError();
     }
     std::vector<ValuePtr> vars;    
     std::vector<ValuePtr> vals;
@@ -213,7 +215,7 @@ ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     //FixMe:implement recursive quasiquote and unquote
     if(args.size() != 1)
-        throw LispError("Incorrect number of arguments for 'quasiquote'");
+        throw ArgumentError();
     if(args[0]->getType() != ValueType::PAIR)
         return args[0];
     auto Pair = static_cast<PairValue*>(args[0].get());
@@ -236,22 +238,22 @@ ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 
 ValuePtr delayForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     if(args.size() != 1)
-        throw LispError("Incorrect number of arguments for 'delay'");
+        throw ArgumentError();
     return make_shared<PromiseValue>(args[0], e.shared_from_this());
 }
 
 ValuePtr forceForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     if(args.size() != 1)
-        throw LispError("Incorrect number of arguments for 'force'");
+        throw ArgumentError();
     auto val = e.eval(args[0]);
     if(val->getType() != ValueType::PROMISE)
-        throw LispError("Invalid argument for 'force'");
+        throw LispError("Invalid argument for 'force', expected promise");
     return static_cast<PromiseValue*>(val.get())->force();
 }
 
 ValuePtr doForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     if(args.size() < 2)
-        throw LispError("Incorrect number of arguments for 'do'");
+        throw ArgumentError();
     auto varList = static_cast<PairValue*>(args[0].get())->toVector();
     std::vector<std::string> names; std::vector<ValuePtr> inits; std::vector<ValuePtr> steps;
     for(const auto& i: varList){
