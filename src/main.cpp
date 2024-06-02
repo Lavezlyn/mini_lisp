@@ -6,23 +6,10 @@
 #include "./parser.h"
 #include "./eval_env.h"
 #include "./error.h"
-#include "./rjsj_test.hpp"
-
-struct TestCtx {
-    std::shared_ptr<EvalEnv> env = EvalEnv::createGlobal();
-    std::string eval(std::string input) {
-        auto tokens = Tokenizer::tokenize(input);
-        Parser parser(std::move(tokens));
-        auto value = parser.parse();
-        auto result = env->eval(std::move(value));
-        return result->toString();
-    }
-};
 
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env);
 std::istringstream readFromFile(const std::string& filename);
 int main(int argc, char* argv[]){
-    // RJSJ_TEST(TestCtx, Lv2, Lv3, Lv4, Lv5, Lv6, Lv7, Lv7Lib, Sicp);
     auto env = EvalEnv::createGlobal();
     if (argc == 2){
         std::istringstream file = readFromFile(argv[1]);
