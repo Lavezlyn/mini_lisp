@@ -19,7 +19,6 @@ const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
     {"let*"s, letStarForm},
     {"begin"s, beginForm},
     {"delay"s, delayForm},
-    {"force"s, forceForm},
     {"do"s, doForm}
 };
 
@@ -131,27 +130,27 @@ ValuePtr caseForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     auto key = e.eval(args[0]);
     for(size_t i = 1; i < args.size(); i++){
         if(args[i]->getType() != ValueType::PAIR) throw LispError("Invalid case form, malformed clause");
-        auto Pair = static_cast<PairValue*>(args[i].get());
-        std::vector<ValuePtr> PairVec = Pair->toVector();
-        auto datum = PairVec[0];
+        auto branchPair = static_cast<PairValue*>(args[i].get());
+        std::vector<ValuePtr> branch = branchPair->toVector();
+        auto datum = branch[0];
         if(datum->asSymbol() && *datum->asSymbol() == "else"s){
             if(i == args.size()-1){
                 ValuePtr result = nullptr;
-                for(size_t j = 1; j < PairVec.size(); j++)
-                    result = e.eval(PairVec[j]);
+                for(size_t j = 1; j < branch.size(); j++)
+                    result = e.eval(branch[j]);
                 return result;
             }
             else throw LispError("Else clause not last in case form");
         }
         if(datum->getType() != ValueType::PAIR) throw LispError("Invalid case form, malformed clause");
-        auto PairVec2 = static_cast<PairValue*>(datum.get())->toVector();
-        if(PairVec2.size() != 1) throw LispError("Invalid case form, incorrect number of literals");
-        auto literal = PairVec2[0];
+        auto literalPair = static_cast<PairValue*>(datum.get())->toVector();
+        if(literalPair.size() != 1) throw LispError("Invalid case form, incorrect number of literals");
+        auto literal = literalPair[0];
         if(!literal->isAtom()) throw LispError("Invalid case form, datum not a literal");
         if(static_cast<BooleanValue*>(equal({key, literal}, e).get())->getValue()){
             ValuePtr result = nullptr;
-            for(size_t j = 1; j < PairVec.size(); j++)
-                result = e.eval(PairVec[j]);
+            for(size_t j = 1; j < branch.size(); j++)
+                result = e.eval(branch[j]);
             return result;
         }
     }
@@ -213,17 +212,16 @@ ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 }
 
 ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& e){
-    //FixMe:implement recursive quasiquote and unquote
     if(args.size() != 1)
         throw ArgumentError();
     if(args[0]->getType() != ValueType::PAIR)
         return args[0];
-    auto Pair = static_cast<PairValue*>(args[0].get());
+    auto exprPair = static_cast<PairValue*>(args[0].get());
     std::vector<ValuePtr> newArgs;
-    for(const auto& arg : Pair->toVector()){
+    for(const auto& arg : exprPair->toVector()){
         if(arg->getType() == ValueType::PAIR){
-            auto Pair2 = static_cast<PairValue*>(arg.get());
-            std::vector<ValuePtr> PairVec = Pair2->toVector();
+            auto Pair = static_cast<PairValue*>(arg.get());
+            std::vector<ValuePtr> PairVec = Pair->toVector();
             if(PairVec.size() > 0 && PairVec[0]->asSymbol() && *PairVec[0]->asSymbol() == "unquote"s){
                 if(PairVec.size() != 2)
                     throw LispError("Invalid unquote form");
@@ -240,15 +238,6 @@ ValuePtr delayForm(const std::vector<ValuePtr>& args, EvalEnv& e){
     if(args.size() != 1)
         throw ArgumentError();
     return make_shared<PromiseValue>(args[0], e.shared_from_this());
-}
-
-ValuePtr forceForm(const std::vector<ValuePtr>& args, EvalEnv& e){
-    if(args.size() != 1)
-        throw ArgumentError();
-    auto val = e.eval(args[0]);
-    if(val->getType() != ValueType::PROMISE)
-        throw LispError("Invalid argument for 'force', expected promise");
-    return static_cast<PromiseValue*>(val.get())->force();
 }
 
 ValuePtr doForm(const std::vector<ValuePtr>& args, EvalEnv& e){

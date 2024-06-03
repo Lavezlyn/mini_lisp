@@ -47,6 +47,7 @@ ValuePtr reduce(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr setCar(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr setCdr(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr promise(const std::vector<ValuePtr>& args, EvalEnv& env);
+ValuePtr force(const std::vector<ValuePtr>& args, EvalEnv& env);
 
 extern std::unordered_map<std::string, ValuePtr> BUILTIN;
 

@@ -157,10 +157,10 @@ ValuePtr expt(const std::vector<ValuePtr>& params, EvalEnv&){
         throw ArgumentError();
     if(!params[0]->isNumber() || !params[1]->isNumber())
         throw LispError("Non-numeric value");
-    double tmp1 = static_cast<NumericValue*>(params[0].get())->asNumber();
-    double tmp2 = static_cast<NumericValue*>(params[1].get())->asNumber();
-    if(tmp1 == 0 && tmp2 == 0) throw LispError("Undefined mathematic form");
-    double result = std::pow(tmp1, tmp2);
+    double base = static_cast<NumericValue*>(params[0].get())->asNumber();
+    double power = static_cast<NumericValue*>(params[1].get())->asNumber();
+    if(base == 0 && power == 0) throw LispError("Undefined mathematic form");
+    double result = std::pow(base, power);
     return std::make_shared<NumericValue>(result);  
 }
 
@@ -225,11 +225,11 @@ ValuePtr equal(const std::vector<ValuePtr>& params, EvalEnv& e){
         bool islistRHS = static_cast<BooleanValue*>(list({params[1]}, e).get())->getValue();
         if(islistLHS != islistRHS) return std::make_shared<BooleanValue>(false);
         if(params[0]->getType() == ValueType::PAIR){
-            auto list1 = static_cast<PairValue*>(params[0].get())->toVector();
-            auto list2 = static_cast<PairValue*>(params[1].get())->toVector();
-            if(list1.size() != list2.size()) return std::make_shared<BooleanValue>(false);
-            for(size_t i = 0; i < list1.size(); i++){
-                if(!static_cast<BooleanValue*>(equal({list1[i], list2[i]}, e).get())->getValue()){
+            auto listLHS = static_cast<PairValue*>(params[0].get())->toVector();
+            auto listRHS = static_cast<PairValue*>(params[1].get())->toVector();
+            if(listLHS.size() != listRHS.size()) return std::make_shared<BooleanValue>(false);
+            for(size_t i = 0; i < listLHS.size(); i++){
+                if(!static_cast<BooleanValue*>(equal({listLHS[i], listRHS[i]}, e).get())->getValue()){
                     return std::make_shared<BooleanValue>(false);
                 }
             }
@@ -261,6 +261,8 @@ ValuePtr odd(const std::vector<ValuePtr>& params, EvalEnv&){
         throw ArgumentError();
     if(!params[0]->isNumber())
         throw LispError("Non-numeric value");
+    if(!params[0]->isInteger())
+        return std::make_shared<BooleanValue>(false);
     double result = static_cast<NumericValue*>(params[0].get())->asNumber();
     return std::make_shared<BooleanValue>(static_cast<int>(result) % 2 != 0);  
 }
@@ -270,6 +272,8 @@ ValuePtr even(const std::vector<ValuePtr>& params, EvalEnv&){
         throw ArgumentError();
     if(!params[0]->isNumber())
         throw LispError("Non-numeric value");
+    if(!params[0]->isInteger())
+        return std::make_shared<BooleanValue>(false);
     double result = static_cast<NumericValue*>(params[0].get())->asNumber();
     return std::make_shared<BooleanValue>(static_cast<int>(result) % 2 == 0);  
 }
@@ -288,9 +292,9 @@ ValuePtr greater(const std::vector<ValuePtr>& params, EvalEnv&){
         throw ArgumentError();
     if(!params[0]->isNumber() || !params[1]->isNumber())
         throw LispError("Non-numeric value");
-    double resultLHS = static_cast<NumericValue*>(params[0].get())->asNumber();
-    double resultRHS = static_cast<NumericValue*>(params[1].get())->asNumber();
-    return std::make_shared<BooleanValue>(resultLHS > resultRHS);  
+    double LHS = static_cast<NumericValue*>(params[0].get())->asNumber();
+    double RHS = static_cast<NumericValue*>(params[1].get())->asNumber();
+    return std::make_shared<BooleanValue>(LHS > RHS);  
 }
 
 ValuePtr less(const std::vector<ValuePtr>& params, EvalEnv&){
@@ -298,9 +302,9 @@ ValuePtr less(const std::vector<ValuePtr>& params, EvalEnv&){
         throw ArgumentError();
     if(!params[0]->isNumber() || !params[1]->isNumber())
         throw LispError("Non-numeric value");
-    double resultLHS = static_cast<NumericValue*>(params[0].get())->asNumber();
-    double resultRHS = static_cast<NumericValue*>(params[1].get())->asNumber();
-    return std::make_shared<BooleanValue>(resultLHS < resultRHS);  
+    double LHS = static_cast<NumericValue*>(params[0].get())->asNumber();
+    double RHS = static_cast<NumericValue*>(params[1].get())->asNumber();
+    return std::make_shared<BooleanValue>(LHS < RHS);  
 }
 
 ValuePtr lessEq(const std::vector<ValuePtr>& params, EvalEnv&){
@@ -308,9 +312,9 @@ ValuePtr lessEq(const std::vector<ValuePtr>& params, EvalEnv&){
         throw ArgumentError();
     if(!params[0]->isNumber() || !params[1]->isNumber())
         throw LispError("Non-numeric value");
-    double resultLHS = static_cast<NumericValue*>(params[0].get())->asNumber();
-    double resultRHS = static_cast<NumericValue*>(params[1].get())->asNumber();
-    return std::make_shared<BooleanValue>(resultLHS <= resultRHS);  
+    double LHS = static_cast<NumericValue*>(params[0].get())->asNumber();
+    double RHS = static_cast<NumericValue*>(params[1].get())->asNumber();
+    return std::make_shared<BooleanValue>(LHS <= RHS);  
 }
 
 ValuePtr greaterEq(const std::vector<ValuePtr>& params, EvalEnv&){
@@ -318,9 +322,9 @@ ValuePtr greaterEq(const std::vector<ValuePtr>& params, EvalEnv&){
         throw ArgumentError();
     if(!params[0]->isNumber() || !params[1]->isNumber())
         throw LispError("Non-numeric value");
-    double resultLHS = static_cast<NumericValue*>(params[0].get())->asNumber();
-    double resultRHS = static_cast<NumericValue*>(params[1].get())->asNumber();
-    return std::make_shared<BooleanValue>(resultLHS >= resultRHS);  
+    double LHS = static_cast<NumericValue*>(params[0].get())->asNumber();
+    double RHS = static_cast<NumericValue*>(params[1].get())->asNumber();
+    return std::make_shared<BooleanValue>(LHS >= RHS);  
 }
 
 ValuePtr boolean(const std::vector<ValuePtr>& params, EvalEnv&){
@@ -556,6 +560,14 @@ ValuePtr promise(const std::vector<ValuePtr>& params, EvalEnv& e){
     return std::make_shared<BooleanValue>(params[0]->getType() == ValueType::PROMISE);
 }
 
+ValuePtr force(const std::vector<ValuePtr>& params, EvalEnv& e){
+    if(params.size() != 1)
+        throw ArgumentError();
+    if(params[0]->getType() != ValueType::PROMISE)
+        throw LispError("Not a promise");
+    return static_cast<PromiseValue*>(params[0].get())->force();
+}
+
 extern std::unordered_map<std::string, ValuePtr> BUILTIN{
     {"apply", std::make_shared<BuiltinProcValue>(apply)},
     {"display", std::make_shared<BuiltinProcValue>(display)},
@@ -606,5 +618,6 @@ extern std::unordered_map<std::string, ValuePtr> BUILTIN{
     {"reduce", std::make_shared<BuiltinProcValue>(reduce)},
     {"set-cdr!", std::make_shared<BuiltinProcValue>(setCdr)},
     {"set-car!", std::make_shared<BuiltinProcValue>(setCar)},
-    {"promise?", std::make_shared<BuiltinProcValue>(promise)}
+    {"promise?", std::make_shared<BuiltinProcValue>(promise)},
+    {"force", std::make_shared<BuiltinProcValue>(force)}
 };

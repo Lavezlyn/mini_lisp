@@ -66,7 +66,7 @@ ValuePtr letStarForm(const std::vector<ValuePtr>& args, EvalEnv& e){
 ### **delay**与**force**
 为了实现惰性求值，我们需要一个新的类型的值：**promise**。为此，我们在**Value.h**和**Value.cpp**中补充了**PromiseValue**的声明和定义。一个**PromiseValue**类的对象持有两个核心成员变量，**bool**类型的**forced**和**ValuePtr**类型的**value**，前者用于标记该**promise**是否已被**force**过，后者存储着**promise**内部真正的值。同时，**PromiseValue**类定义了方法**force()**，它用于执行**promise**的求值，如果它尚未被求值过，那么进行求值并返回求值结果，同时将**value**更新为求值后的值；如果它已经被求值过，直接返回**value**。
 
-然后，我们在**delayForm**函数里返回一个**PromiseValue**类对象，在**forceForm**函数里调用传入函数的**PromiseValue**类对象的**force()**方法。这就完成了**delay**和**force**的语法。
+然后，我们在**delayForm**函数(定义为特殊形式函数)里返回一个**PromiseValue**类对象，在**force**函数(定义为内置过程函数)里调用传入函数的**PromiseValue**类对象的**force()**方法。这就完成了**delay**和**force**的语法。
 ### 其他特殊形式
 **case**与**do**特殊形式的实现虽然过程比较繁琐，但逻辑上十分简单，只需按照规约解析传入的**PairValue**类对象，把它拆解为特殊形式所需的部分，再依次对应逻辑即可。
 

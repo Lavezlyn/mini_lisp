@@ -56,6 +56,13 @@ std::string PairValue::toString() const {
     return result;
 }
 
+std::string PromiseValue::toString() const{
+    std::string forcedString;
+    if(forced) forcedString = " (forced)";
+    else forcedString = " (not forced)";
+    return "#<Promise" + forcedString + ">";
+}
+
 std::vector<ValuePtr> PairValue:: toVector() const {
     try{
         std::vector<ValuePtr> result;
@@ -108,11 +115,4 @@ ValuePtr PromiseValue::force(){
     forced = true;
     value = env->eval(value);
     return value;
-}
-
-std::string PromiseValue::toString() const{
-    std::string forcedString;
-    if(forced) forcedString = " (forced)";
-    else forcedString = " (not forced)";
-    return "#<Promise" + forcedString + ">";
 }

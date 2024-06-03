@@ -9,7 +9,7 @@
 
 ValuePtr Parser::parse(){
     if(tokens.empty()){
-        throw SyntaxError("Unexpected end of file");
+        throw SyntaxError("Unexpected end of input");
     }
     auto token = tokens.front().get();
     if(token->getType() == TokenType::NUMERIC_LITERAL){
@@ -73,7 +73,7 @@ ValuePtr Parser::parse(){
 
 ValuePtr Parser::parseTails(){
     if(tokens.empty()){
-        throw SyntaxError("Unexpected end of file");
+        throw SyntaxError("Unexpected end of input");
     }
     if(tokens.front()->getType() == TokenType::RIGHT_PAREN){
         tokens.pop_front();
@@ -81,14 +81,14 @@ ValuePtr Parser::parseTails(){
     } 
     auto car = this->parse();
     if(tokens.empty()){
-        throw SyntaxError("Unexpected end of file");
+        throw SyntaxError("Unexpected end of input");
     }
     if(tokens.front()->getType() == TokenType::DOT){
         tokens.pop_front();
         auto cdr = this->parse();
 
         if(tokens.front()->getType() != TokenType::RIGHT_PAREN) {
-        throw SyntaxError("Invalid token after dot. Expect a right parenthesis");
+        throw SyntaxError("Invalid token after dot. Expected right parenthesis");
        }
 
         tokens.pop_front();
