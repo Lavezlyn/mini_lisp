@@ -23,7 +23,7 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
 
 最后，我们在**main**函数中进行总调度。根据用户在命令行输入的不同，传入不同参数调用**runInterpreter**函数，这样就实现了文件模式。
 ## 实现解释器换行功能
-我们维护一个**int**类型的变量**openBrackets**，用于计数未匹配括号的个数，以此判断用户的输入是否结束。如果**openBrackets**的值大于0，那么说明还有未匹配的括号，代码应该继续读取下一行。如果**openBrackets**的值小于等于0，可以开始解析和执行这个代码块。注意，这里我们将右括号多余的情况留待解析时再抛出异常，无需在**runInterpreter**中做额外处理。
+我们维护一个**int**类型的变量**openBrackets**，用于计数未匹配括号的个数，以此判断用户的输入是否结束。如果**openBrackets**的值大于0，那么说明还有未匹配的括号，代码应该继续读取下一行。如果**openBrackets**的值小于等于0，可以开始解析和执行这个代码块。
 ```
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env){
     std::string inputBuffer;

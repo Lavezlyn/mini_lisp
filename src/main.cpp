@@ -46,7 +46,7 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
             }
 
             inputBuffer += line + "\n";
-
+            
             auto tokens = Tokenizer::tokenize(line);
             for (const auto& token : tokens){
                 if (token->getType() == TokenType::LEFT_PAREN)
@@ -56,17 +56,22 @@ void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalE
             }
 
             if (openBrackets == 0){
-                std::string inputCopy = inputBuffer;
-                inputBuffer = "";
-                isFirstLine = true;
-                auto tokens = Tokenizer::tokenize(inputCopy);
+                auto tokens = Tokenizer::tokenize(inputBuffer);
                 Parser parser(std::move(tokens));
                 auto value = parser.parse();
                 auto result = env->eval(std::move(value));  
                 if (mode == "REPL")
                     std::cout << result->toString() << std::endl;
+                inputBuffer = "";
+                isFirstLine = true;
+            }
+            else if (openBrackets < 0){
+                throw SyntaxError("Unbalanced parentheses");
             }
         }catch(std::runtime_error& e){
+            inputBuffer = "";
+            openBrackets = 0;
+            isFirstLine = true;
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
