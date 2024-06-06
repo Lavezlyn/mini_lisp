@@ -23,7 +23,7 @@ const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
 };
 
 ValuePtr defineForm(const std::vector<ValuePtr>& args, EvalEnv& e) {
-    if (args.size() != 2) throw ArgumentError();
+    if (args.size() < 2) throw ArgumentError();
     if (auto name = args[0]->asSymbol()) {
         if (args[1]->getType() == ValueType::SYMBOL)
             e.defineBinding(*name, args[1]);
