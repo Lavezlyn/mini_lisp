@@ -9,6 +9,7 @@
 
 void runInterpreter(std::string mode, std::istream& input, std::shared_ptr<EvalEnv> env);
 std::istringstream readFromFile(const std::string& filename);
+
 int main(int argc, char* argv[]){
     auto env = EvalEnv::createGlobal();
     if (argc == 2){

@@ -262,7 +262,7 @@ ValuePtr odd(const std::vector<ValuePtr>& params, EvalEnv&){
     if(!params[0]->isNumber())
         throw LispError("Non-numeric value");
     if(!params[0]->isInteger())
-        return std::make_shared<BooleanValue>(false);
+        throw LispError("Non-integer value");
     double result = static_cast<NumericValue*>(params[0].get())->asNumber();
     return std::make_shared<BooleanValue>(static_cast<int>(result) % 2 != 0);  
 }
@@ -273,7 +273,7 @@ ValuePtr even(const std::vector<ValuePtr>& params, EvalEnv&){
     if(!params[0]->isNumber())
         throw LispError("Non-numeric value");
     if(!params[0]->isInteger())
-        return std::make_shared<BooleanValue>(false);
+        throw LispError("Non-integer value");
     double result = static_cast<NumericValue*>(params[0].get())->asNumber();
     return std::make_shared<BooleanValue>(static_cast<int>(result) % 2 == 0);  
 }

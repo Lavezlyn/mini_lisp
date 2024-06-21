@@ -6,7 +6,6 @@ using namespace std::literals;
 
 const std::unordered_map<std::string, SpecialFormType*> SPECIAL_FORMS{
     {"define"s, defineForm},
-    {"set!"s, defineForm},
     {"quote"s, quoteForm},
     {"quasiquote"s,quasiquoteForm},
     {"if"s, ifForm},

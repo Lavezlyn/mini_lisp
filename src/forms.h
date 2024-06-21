@@ -20,7 +20,6 @@ ValuePtr letStarForm(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr beginForm(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr quasiquoteForm(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr delayForm(const std::vector<ValuePtr>& args, EvalEnv& env);
-ValuePtr forceForm(const std::vector<ValuePtr>& args, EvalEnv& env);
 ValuePtr doForm(const std::vector<ValuePtr>& args, EvalEnv& env);   
 
 #endif
